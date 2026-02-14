@@ -2,6 +2,11 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User, UserProfile
 
+# Admin Site Config
+admin.site.site_header = 'Inspectify Admin'
+admin.site.site_title = 'Inspectify'
+admin.site.index_title = 'Panel de Control'
+
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'title', 'location', 'willing_to_travel', 'offshore_experience')

@@ -1,0 +1,275 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static admin_dashboard %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static " admin/css/dashboard.css" %}">
+<style>
+    /* Dashboard specific styles embedded for simplicity */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-color: var(--primary-color);
+    }
+
+    .card-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: white;
+    }
+
+    .card-icon {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--primary-color);
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    /* Actions Grid */
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    /* Classic Admin Toggle */
+    .admin-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .admin-toggle-btn:hover {
+        border-color: var(--text-primary);
+        color: var(--text-primary);
+    }
+
+    #content-main {
+        display: none;
+        /* Hidden by default */
+    }
+
+    #content-main.visible {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    #content-related {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard-view{% endblock %}
+
+{% block nav-sidebar %}
+<!-- Sidebar removed for clean dashboard view -->
+{% endblock %}
+
+{% block sidebar %}
+<!-- Sidebar removed for clean dashboard view -->
+{% endblock %}
+{% block content %}
+{% get_dashboard_stats as stats %}
+
+<div id="dashboard-container">
+
+    <!-- Welcome Header -->
+    <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h1 style="margin: 0; font-size: 1.8rem;">Bienvenido, {{ user.get_short_name|default:user.username }} 👋</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;">Panel de Control de Inspectify</p>
+    </div>
+
+    <!-- Quick Stats -->
+    <h2 style="margin-bottom: 1rem; font-size: 1.2rem; color: var(--text-primary);">Resumen General</h2>
+    <div class="dashboard-grid">
+        <!-- Users Card -->
+        <div class="dashboard-card">
+            <div>
+                <div class="card-icon">
+                    <svg style="width:24px;height:24px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="card-label">Usuarios Totales</div>
+                <div class="card-value">{{ stats.total_users }}</div>
+            </div>
+        </div>
+
+        <!-- Jobs Card -->
+        <div class="dashboard-card">
+            <div>
+                <div class="card-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">
+                    <svg style="width:24px;height:24px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="card-label">Ofertas Activas</div>
+                <div class="card-value">{{ stats.active_jobs }}</div>
+            </div>
+        </div>
+
+        <!-- Docs Card -->
+        <div class="dashboard-card">
+            <div>
+                <div class="card-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">
+                    <svg style="width:24px;height:24px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="card-label">Documentos Técnicos</div>
+                <div class="card-value">{{ stats.total_docs }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <h2 style="margin-bottom: 1rem; font-size: 1.2rem; color: var(--text-primary);">Acciones Rápidas</h2>
+    <div class="actions-grid">
+        <a href="{% url 'admin:repository_document_add' %}" class="action-btn">
+            <svg style="width:20px;height:20px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            Subir Documento
+        </a>
+        <a href="{% url 'admin:jobs_joboffer_add' %}" class="action-btn">
+            <svg style="width:20px;height:20px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Publicar Oferta
+        </a>
+        <a href="{% url 'admin:core_user_add' %}" class="action-btn">
+            <svg style="width:20px;height:20px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
+            Crear Usuario
+        </a>
+        <a href="{% url 'job_list' %}" class="action-btn" target="_blank">
+            <svg style="width:20px;height:20px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+            </svg>
+            Ver Sitio Web
+        </a>
+    </div>
+
+</div>
+
+<!-- Toggle for Classic Admin -->
+<div style="margin: 3rem 0 1rem 0; border-top: 1px solid var(--border-color); padding-top: 2rem; text-align: center;">
+    <button onclick="toggleAdmin()" class="admin-toggle-btn">
+        <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+            </path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+            </path>
+        </svg>
+        Ver Administración Avanzada (Tablas)
+    </button>
+</div>
+
+<!-- Standard Django Admin Content (Hidden by default) -->
+<div id="content-main">
+    {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+</div>
+
+<script>
+    function toggleAdmin() {
+        const content = document.getElementById('content-main');
+        const btn = document.querySelector('.admin-toggle-btn');
+        content.classList.toggle('visible');
+
+        if (content.classList.contains('visible')) {
+            btn.innerHTML = 'Ocultar Administración Avanzada';
+            window.scrollTo({ top: content.offsetTop - 100, behavior: 'smooth' });
+        } else {
+            btn.innerHTML = '<svg style="width:16px;height:16px;display:inline-block;vertical-align:middle;margin-right:8px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Ver Administración Avanzada (Tablas)';
+        }
+    }
+</script>
+
+{% endblock %}
