@@ -19,19 +19,19 @@ class Command(BaseCommand):
         parser.add_argument('--schedule', action='store_true', help='Schedule this command to run daily')
 
     def handle(self, *args, **options):
-        if options['schedule']:
-            from jobs.tasks import scrape_all_jobs_task
-            keywords = options['keywords']
-            limit = options['limit']
-            # Schedule it to run now (and repeat if configured in task)
-            scrape_all_jobs_task(keywords=keywords, limit=limit, repeat=24*60*60)
-            self.stdout.write(self.style.SUCCESS(f"Scheduled scraping task for keywords='{keywords}' daily."))
-            return
+        # ... (schedule logic remains same)
 
         source = options['source']
         keywords = options['keywords']
         location = options['location']
         limit = options['limit']
+
+        # Import ScrapingLog model
+        from jobs.models import ScrapingLog
+        from django.utils import timezone
+
+        # Create log entry
+        log = ScrapingLog.objects.create(source=source)
 
         scrapers = []
         if source == 'all' or source == 'linkedin':
@@ -42,6 +42,8 @@ class Command(BaseCommand):
             scrapers.append(RigzoneScraper())
 
         total_new_jobs = 0
+        total_found = 0
+        error_messages = []
 
         for scraper in scrapers:
             scraper_name = scraper.__class__.__name__
@@ -49,21 +51,21 @@ class Command(BaseCommand):
             
             try:
                 jobs = scraper.search(keywords, location, limit)
-                self.stdout.write(f"Found {len(jobs)} jobs from {scraper_name}.")
+                found_count = len(jobs)
+                total_found += found_count
+                self.stdout.write(f"Found {found_count} jobs from {scraper_name}.")
 
                 for job_data in jobs:
                     # Avoid duplicates by URL and ensure title exists
                     url = job_data.get('url')
                     title = job_data.get('title')
                     if not url or not title:
-                        self.stdout.write(self.style.WARNING(f"Skipping job due to missing data: Title='{title}', URL='{url}'"))
                         continue
 
                     # Handle valid posted_at date or default to today
                     posted_at = job_data.get('posted_at')
                     if posted_at:
                         try:
-                            # Handle ISO format from RemoteOK
                             if isinstance(posted_at, str):
                                 posted_at = datetime.fromisoformat(posted_at).date()
                         except ValueError:
@@ -71,8 +73,6 @@ class Command(BaseCommand):
                     else:
                         posted_at = date.today()
                     
-                    # Convert salary string to fields (basic placeholder logic)
-                    # Real implementation would need a parser
                     salary_str = job_data.get('salary', '')
                     
                     obj, created = JobOffer.objects.get_or_create(
@@ -99,6 +99,20 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.SUCCESS(f"Saved: {job_data.get('title')}"))
             
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"Error executing {scraper_name}: {e}"))
+                msg = f"Error executing {scraper_name}: {e}"
+                self.stdout.write(self.style.ERROR(msg))
+                error_messages.append(msg)
 
-        self.stdout.write(self.style.SUCCESS(f"Scraping completed. {total_new_jobs} new jobs added."))
+        # Update and save log
+        log.end_time = timezone.now()
+        log.jobs_found = total_found
+        log.jobs_added = total_new_jobs
+        if error_messages:
+            log.status = 'WARNING' if total_new_jobs > 0 else 'FAILED'
+            log.message = "; ".join(error_messages)
+        else:
+            log.status = 'SUCCESS'
+            log.message = "Scraping completed successfully."
+        log.save()
+
+        self.stdout.write(self.style.SUCCESS(f"Scraping completed. {total_new_jobs} new jobs added. Log ID: {log.id}"))

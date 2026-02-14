@@ -112,12 +112,12 @@ class LinkedInScraper(JobScraper):
                                 pass
 
                             jobs.append({
-                                'title': title_text,
-                                'company': company_text,
-                                'location': location_text,
+                                'title': title_text[:200],
+                                'company': company_text[:200],
+                                'location': location_text[:200],
                                 'url': job_url,
                                 'apply_url': job_url,
-                                'description': description, 
+                                'description': description[:200], 
                                 'source': 'LinkedIn',
                                 'remote': remote_bool,
                                 'posted_at': datetime.today().date(),

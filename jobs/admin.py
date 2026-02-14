@@ -7,3 +7,11 @@ class JobOfferAdmin(admin.ModelAdmin):
     list_filter = ('source', 'is_active', 'location')
     search_fields = ('title', 'company', 'description')
     ordering = ('-posted_at',)
+
+from .models import ScrapingLog
+
+@admin.register(ScrapingLog)
+class ScrapingLogAdmin(admin.ModelAdmin):
+    list_display = ('source', 'start_time', 'status', 'jobs_found', 'jobs_added')
+    list_filter = ('source', 'status', 'start_time')
+    readonly_fields = ('start_time', 'end_time', 'jobs_found', 'jobs_added', 'message')

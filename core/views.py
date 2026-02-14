@@ -8,12 +8,19 @@ def index(request):
     Main dashboard view.
     """
     from jobs.services import get_recommended_jobs
+    from repository.services import get_recommended_documents
     
     recommended_jobs = []
+    recommended_docs = []
+    
     if request.user.is_authenticated:
         recommended_jobs = get_recommended_jobs(request.user, limit=3)
+        recommended_docs = get_recommended_documents(request.user, limit=3)
         
-    return render(request, 'core/index.html', {'recommended_jobs': recommended_jobs})
+    return render(request, 'core/index.html', {
+        'recommended_jobs': recommended_jobs,
+        'recommended_docs': recommended_docs
+    })
 
 def register(request):
     if request.method == 'POST':
@@ -32,6 +39,10 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
             return redirect('dashboard')
     else:
         form = AuthenticationForm()
