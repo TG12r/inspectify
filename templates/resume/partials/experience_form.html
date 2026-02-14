@@ -1,0 +1,63 @@
+<form
+    hx-post="{% if form.instance.pk %}{% url 'edit_experience' form.instance.pk %}{% else %}{% url 'add_experience' %}{% endif %}"
+    hx-target="{% if form.instance.pk %}this{% else %}#experience-list{% endif %}"
+    hx-swap="{% if form.instance.pk %}outerHTML{% else %}beforeend{% endif %}" {% if not form.instance.pk %}
+    hx-on::after-request="this.reset()" {% endif %}
+    class="glass-panel p-4 rounded-lg mb-4 space-y-4 border border-blue-500/50">
+
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Cargo</label>
+            {{ form.job_title }}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Empresa</label>
+            {{ form.company }}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Ubicación</label>
+            {{ form.location }}
+        </div>
+        <div class="flex items-center pt-6">
+            <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                {{ form.is_current }}
+                <span>Trabajo actual</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Inicio</label>
+            {{ form.start_date }}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Fin</label>
+            {{ form.end_date }}
+        </div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Descripción</label>
+        {{ form.description }}
+    </div>
+
+    <div class="flex justify-end space-x-3 pt-2">
+        {% if form.instance.pk %}
+        <button type="button" hx-get="{% url 'resume_edit' %}" hx-select="#experience-{{ form.instance.pk }}"
+            hx-target="closest form" hx-swap="outerHTML"
+            class="px-3 py-1 text-slate-400 hover:text-white transition-colors">
+            Cancelar
+        </button>
+        {% endif %}
+        <button type="submit"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+            Guardar
+        </button>
+    </div>
+</form>

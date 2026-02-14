@@ -1,0 +1,22 @@
+<form hx-post="{% url 'add_skill' %}" hx-target="#skill-list" hx-swap="beforeend" hx-on::after-request="this.reset()"
+    class="border border-slate-700 bg-slate-800/50 p-4 rounded-lg space-y-3">
+
+    {% csrf_token %}
+
+    <div>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Nueva Habilidad</label>
+        {{ form.name }}
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Nivel</label>
+        {{ form.level }}
+    </div>
+
+    <div class="flex justify-end pt-2">
+        <button type="submit"
+            class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+            Agregar
+        </button>
+    </div>
+</form>

@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- Header & Search -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Empleos</h1>
+            <p class="text-slate-400">Encuentra tu próxima oportunidad profesional.</p>
+        </div>
+        <form method="get" class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <input type="text" name="q" placeholder="Buscar por cargo, empresa..."
+                value="{{ request.GET.q|default:'' }}"
+                class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 w-full sm:w-64">
+            <input type="text" name="location" placeholder="Ubicación" value="{{ request.GET.location|default:'' }}"
+                class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 w-full sm:w-48">
+            <button type="submit"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                Buscar
+            </button>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+        <!-- Filters Sidebar -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="glass-panel p-6 rounded-xl">
+                <h3 class="text-lg font-semibold text-white mb-4">Filtrar por</h3>
+                <form method="get" id="filterForm">
+                    <!-- Preserve search params -->
+                    <input type="hidden" name="q" value="{{ query|default:'' }}">
+                    <input type="hidden" name="location" value="{{ location|default:'' }}">
+
+                    <!-- Source Filter -->
+                    <div class="mb-6">
+                        <h4 class="text-sm font-medium text-slate-400 mb-2">Fuente</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="source" value="" {% if not selected_source %}checked{% endif %}                                    class="form-radio text-blue-600 bg-slate-800 border-slate-600 focus:ring-blue-500"
+                                    onchange="this.form.submit()">
+                                <span class="text-slate-300">Todas</span>
+                            </label>
+                            {% for source in sources %}
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="source" value="{{ source }}" {% if selected_source == source %}checked{% endif %}
+                                    class="form-radio text-blue-600 bg-slate-800 border-slate-600 focus:ring-blue-500"
+                                    onchange="this.form.submit()">
+                                <span class="text-slate-300">{{ source }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Remote Filter -->
+                    <div class="mb-6">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="remote" {% if is_remote == 'on' %}checked{% endif %}
+                                class="form-checkbox text-blue-600 bg-slate-800 border-slate-600 rounded focus:ring-blue-500"
+                                onchange="this.form.submit()">
+                            <span class="text-slate-300">Solo Remoto</span>
+                        </label>
+                    </div>
+
+                    <!-- Sort -->
+                    <div class="mb-6">
+                        <h4 class="text-sm font-medium text-slate-400 mb-2">Ordenar por</h4>
+                        <select name="sort" onchange="this.form.submit()"
+                            class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="-posted_at" {% if sort_by == '-posted_at' %}selected{% endif %}>Más recientes
+                            </option>
+                            <option value="posted_at" {% if sort_by == 'posted_at' %}selected{% endif %}>Más antiguos
+                            </option>
+                        </select>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors">
+                        Aplicar Filtros
+                    </button>
+                    <a href="{% url 'job_list' %}"
+                        class="block text-center mt-3 text-sm text-slate-400 hover:text-white">
+                        Limpiar todo
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Job List & Pagination -->
+        <div class="lg:col-span-3 space-y-6">
+            <div class="grid grid-cols-1 gap-6">
+                {% for job in jobs %}
+                <div class="glass-panel p-6 rounded-xl hover:border-blue-500/50 transition-colors group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">
+                                <a href="{% url 'job_detail' job.pk %}">{{ job.title }}</a>
+                            </h2>
+                            <div class="flex items-center space-x-4 mt-2 text-sm text-slate-400">
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                                        </path>
+                                    </svg>
+                                    {{ job.company }}
+                                </span>
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                        </path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    {{ job.location }}
+                                </span>
+                                {% if job.salary_range %}
+                                <span class="flex items-center text-emerald-400">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                        </path>
+                                    </svg>
+                                    {{ job.salary_range }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end space-y-2">
+                            <span class="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded border border-slate-700">
+                                {{ job.posted_at|date:"d M Y" }}
+                            </span>
+                            <span class="text-xs text-slate-500">
+                                Via {{ job.source }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-400 mt-4 line-clamp-2">
+                        {{ job.description }}
+                    </p>
+
+                    <div class="mt-4 pt-4 border-t border-slate-800 flex justify-end">
+                        <a href="{% url 'job_detail' job.pk %}"
+                            class="text-sm font-medium text-blue-500 hover:text-blue-400 transition-colors flex items-center">
+                            Ver Detalles
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-12 col-span-1">
+                    <svg class="w-16 h-16 mx-auto text-slate-600 mb-4" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-white mb-2">No se encontraron empleos</h3>
+                    <p class="text-slate-400">Intenta ajustar tus filtros de búsqueda.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if jobs.has_other_pages %}
+            <div class="flex justify-center mt-8">
+                <nav class="flex items-center space-x-2">
+                    {% if jobs.has_previous %}
+                    <a href="?page={{ jobs.previous_page_number }}&q={{ query|default:'' }}&location={{ location|default:'' }}&source={{ selected_source|default:'' }}&remote={{ is_remote|default:'' }}&sort={{ sort_by }}"
+                        class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700">
+                        Anterior
+                    </a>
+                    {% endif %}
+
+                    <span class="px-3 py-2 text-slate-400">
+                        Página {{ jobs.number }} de {{ jobs.paginator.num_pages }}
+                    </span>
+
+                    {% if jobs.has_next %}
+                    <a href="?page={{ jobs.next_page_number }}&q={{ query|default:'' }}&location={{ location|default:'' }}&source={{ selected_source|default:'' }}&remote={{ is_remote|default:'' }}&sort={{ sort_by }}"
+                        class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700">
+                        Siguiente
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

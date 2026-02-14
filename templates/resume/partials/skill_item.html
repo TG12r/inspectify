@@ -1,0 +1,21 @@
+<div class="glass-panel p-3 rounded-lg flex justify-between items-center skill-item" id="skill-{{ skill.id }}">
+    <div>
+        <h4 class="text-white font-medium">{{ skill.name }}</h4>
+        <div class="flex items-center space-x-1 mt-1">
+            <span class="text-xs text-slate-400">
+                {% if skill.level == 'Beginner' %}Principiante{% endif %}
+                {% if skill.level == 'Intermediate' %}Intermedio{% endif %}
+                {% if skill.level == 'Advanced' %}Avanzado{% endif %}
+                {% if skill.level == 'Expert' %}Experto{% endif %}
+            </span>
+        </div>
+    </div>
+    <div class="flex space-x-2">
+        <button hx-delete="{% url 'delete_skill' skill.id %}" hx-target="#skill-{{ skill.id }}" hx-swap="outerHTML"
+            class="text-slate-400 hover:text-red-400 transition-colors" title="Eliminar">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+</div>

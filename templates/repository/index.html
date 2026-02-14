@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Hero Section with Search -->
+    <div class="relative bg-gradient-to-r from-blue-900 to-slate-900 rounded-2xl p-8 md:p-12 overflow-hidden">
+        <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+        <div class="relative z-10 max-w-2xl mx-auto text-center space-y-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Repositorio Técnico</h1>
+            <p class="text-slate-300 text-lg">Normas, procedimientos y artículos técnicos para inspectores de la
+                industria Oil & Gas.</p>
+
+            <form method="GET" action="{% url 'repository_index' %}" class="relative">
+                <input type="text" name="q" value="{{ query|default:'' }}"
+                    class="w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    placeholder="Buscar documentos (ej. API 570, Welding procedure)...">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </form>
+        </div>
+    </div>
+
+    <!-- Categories Grid -->
+    <div>
+        <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+            </svg>
+            Categorías
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for category in categories %}
+            <a href="{% url 'category_detail' category.slug %}"
+                class="glass-panel p-6 rounded-xl hover:border-slate-600 transition-all group">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
+                        <i class="{{ category.icon }} fa-lg"></i> {# Assuming FontAwesome or similar #}
+                        <!-- Fallback icon if no class provided -->
+                        {% if not category.icon %}
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <h3 class="text-lg font-medium text-white group-hover:text-blue-400 transition-colors">{{
+                        category.name }}</h3>
+                </div>
+                <p class="text-slate-400 text-sm line-clamp-2">{{ category.description }}</p>
+                <div class="mt-4 flex items-center justify-between">
+                    <span class="text-xs text-slate-500">{{ category.documents.count }} documentos</span>
+                    <span class="p-2 rounded-lg bg-slate-800 text-slate-400 group-hover:text-white transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                            </path>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-span-full text-center py-12 text-slate-500">
+                No hay categorías definidas aún.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Documents -->
+    <div>
+        <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+            <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Recientemente Agregados
+        </h2>
+
+        <div class="space-y-4">
+            {% for doc in recent_docs %}
+            <div class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:bg-slate-800/50 transition-colors">
+                <div
+                    class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center text-slate-300 font-bold text-xs uppercase">
+                    {{ doc.extension }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <a href="{% url 'document_detail' doc.slug %}"
+                        class="text-white hover:text-blue-400 font-medium truncate block">
+                        {{ doc.title }}
+                    </a>
+                    <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                        <span>{{ doc.category.name }}</span>
+                        <span>•</span>
+                        <span>{{ doc.uploaded_at|date:"d M, Y" }}</span>
+                    </div>
+                </div>
+                <button onclick="window.location.href='{% url 'document_detail' doc.slug %}';"
+                    class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                </button>
+            </div>
+            {% empty %}
+            <div class="text-center py-8 text-slate-500">
+                No hay documentos recientes.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

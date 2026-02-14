@@ -1,0 +1,55 @@
+<form
+    hx-post="{% if form.instance.pk %}{% url 'edit_education' form.instance.pk %}{% else %}{% url 'add_education' %}{% endif %}"
+    hx-target="{% if form.instance.pk %}this{% else %}#education-list{% endif %}"
+    hx-swap="{% if form.instance.pk %}outerHTML{% else %}beforeend{% endif %}" {% if not form.instance.pk %}
+    hx-on::after-request="this.reset()" {% endif %}
+    class="glass-panel p-4 rounded-lg mb-4 space-y-4 border border-blue-500/50">
+
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Institución</label>
+            {{ form.institution }}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Título / Grado</label>
+            {{ form.degree }}
+        </div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Campo de Estudio</label>
+        {{ form.field_of_study }}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Inicio</label>
+            {{ form.start_date }}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Fin</label>
+            {{ form.end_date }}
+        </div>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-slate-300 mb-1">Descripción / Logros</label>
+        {{ form.description }}
+    </div>
+
+    <div class="flex justify-end space-x-3 pt-2">
+        {% if form.instance.pk %}
+        <button type="button" hx-get="{% url 'resume_edit' %}" hx-select="#education-{{ form.instance.pk }}"
+            hx-target="closest form" hx-swap="outerHTML"
+            class="px-3 py-1 text-slate-400 hover:text-white transition-colors">
+            Cancelar
+        </button>
+        {% endif %}
+        <button type="submit"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+            Guardar
+        </button>
+    </div>
+</form>
