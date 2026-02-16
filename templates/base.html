@@ -53,13 +53,15 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-slate-900 border-r border-slate-800 flex-shrink-0 flex flex-col hidden md:flex">
         <div class="p-6">
-            <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            <a href="{% url 'dashboard' %}">
+                <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                Inspectify
-            </h1>
+                    </svg>
+                    Inspectify
+                </h1>
+            </a>
         </div>
 
         <nav class="flex-1 px-3 space-y-1">
@@ -122,12 +124,26 @@
             {% if user.is_authenticated %}
             <div class="flex items-center justify-between">
                 <div class="flex items-center min-w-0">
+                    {% if user.profile.avatar %}
+                    <img class="h-9 w-9 rounded-full bg-slate-700 object-cover" src="{{ user.profile.avatar.url }}"
+                        alt="{{ user.username }}">
+                    {% else %}
                     <img class="h-9 w-9 rounded-full bg-slate-700"
-                        src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" alt="User Avatar">
-                    <div class="ml-3 truncate">
-                        <p class="text-xs font-medium text-white truncate">{{ user.username }}</p>
-                        <p class="text-xs text-slate-500">{{ user.get_role_display }}</p>
-                    </div>
+                        src="https://ui-avatars.com/api/?name={{ user.first_name|default:user.username }}&background=random"
+                        alt="User Avatar">
+                    {% endif %}
+                    <a href="{% url 'public_profile' user.profile.slug %}">
+                        <div class="ml-3 truncate">
+                            <p class="text-xs font-medium text-white truncate">
+                                {% if user.first_name %}
+                                {{ user.first_name }} {{ user.last_name }}
+                                {% else %}
+                                {{ user.username }}
+                                {% endif %}
+                            </p>
+                            <p class="text-xs text-slate-500">{{ user.profile.title|default:user.get_role_display }}</p>
+                        </div>
+                    </a>
                 </div>
                 <a href="{% url 'logout' %}" class="text-slate-400 hover:text-red-400 ml-2" title="Cerrar Sesión">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

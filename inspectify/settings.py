@@ -150,3 +150,4 @@ LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
 # Trigger reload for new template tags
+# Updated filter registration

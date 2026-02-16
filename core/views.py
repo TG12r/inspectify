@@ -28,11 +28,16 @@ def index(request):
         'resume_health': resume_health
     })
 
+from .models import UserProfile
+
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            # Create UserProfile
+            UserProfile.objects.create(user=user)
+            
             login(request, user)
             return redirect('dashboard')
     else:
