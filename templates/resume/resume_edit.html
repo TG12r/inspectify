@@ -26,6 +26,55 @@
     </div>
     {% endif %}
 
+    <!-- Health Report Widget -->
+    {% if resume_health %}
+    <div class="glass-panel p-6 rounded-xl border border-{{ resume_health.color }}-500/30">
+        <div class="flex flex-col md:flex-row items-center gap-6">
+            <!-- Score & Level -->
+            <div class="flex items-center gap-4 min-w-[200px]">
+                <div class="relative w-20 h-20 rounded-full flex items-center justify-center bg-slate-800"
+                    style="background: conic-gradient(var(--color-{{ resume_health.color }}-500, #3b82f6) {{ resume_health.score }}%, #1e293b 0);">
+                    <div class="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center flex-col">
+                        <span class="text-xl font-bold text-white">{{ resume_health.score }}%</span>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-400">Salud del CV</p>
+                    <p class="text-lg font-bold text-{{ resume_health.color }}-400">{{ resume_health.level }}</p>
+                </div>
+            </div>
+
+            <!-- Specific Suggestions -->
+            <div class="flex-1 w-full border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0 md:pl-6">
+                <h3 class="text-sm font-semibold text-white mb-3">Recomendaciones de Mejora:</h3>
+                {% if resume_health.suggestions %}
+                <ul class="space-y-2">
+                    {% for suggestion in resume_health.suggestions %}
+                    <li class="flex items-start gap-2 text-sm text-slate-300">
+                        <svg class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                        <span>{{ suggestion }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="flex items-center gap-2 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-medium">¡Tu currículum luce genial! Buen trabajo.</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Main Profile Info -->
     <div class="glass-panel p-6 rounded-xl">
         <h2 class="text-xl font-semibold text-white mb-4 flex items-center">

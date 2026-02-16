@@ -9,17 +9,23 @@ def index(request):
     """
     from jobs.services import get_recommended_jobs
     from repository.services import get_recommended_documents
+    from resume.services.health_service import calculate_resume_health
     
     recommended_jobs = []
     recommended_docs = []
+    resume_health = None
     
     if request.user.is_authenticated:
         recommended_jobs = get_recommended_jobs(request.user, limit=3)
         recommended_docs = get_recommended_documents(request.user, limit=3)
         
+        if hasattr(request.user, 'resume'):
+            resume_health = calculate_resume_health(request.user.resume)
+        
     return render(request, 'core/index.html', {
         'recommended_jobs': recommended_jobs,
-        'recommended_docs': recommended_docs
+        'recommended_docs': recommended_docs,
+        'resume_health': resume_health
     })
 
 def register(request):

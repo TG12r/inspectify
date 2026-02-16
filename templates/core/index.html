@@ -95,40 +95,61 @@
             <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500/10 rounded-full blur-xl"></div>
 
             <h3 class="text-lg font-semibold text-white mb-4">Salud del Perfil</h3>
+
+            {% if resume_health %}
             <div class="flex items-center gap-6">
-                <!-- Circular Progress (Mock using conic-gradient) -->
+                <!-- Circular Progress -->
                 <div class="relative w-24 h-24 rounded-full flex items-center justify-center bg-slate-800"
-                    style="background: conic-gradient(#3b82f6 85%, #1e293b 0);">
+                    style="background: conic-gradient(var(--color-{{ resume_health.color }}-500, #3b82f6) {{ resume_health.score }}%, #1e293b 0);">
                     <div class="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center flex-col">
-                        <span class="text-2xl font-bold text-white">85%</span>
+                        <span class="text-2xl font-bold text-white">{{ resume_health.score }}%</span>
                     </div>
                 </div>
 
                 <div class="flex-1">
-                    <p class="text-sm text-slate-400 mb-2">Tu perfil es altamente competitivo.</p>
-                    <button class="text-sm text-blue-400 font-medium hover:text-blue-300 flex items-center gap-1">
-                        Mejorar con IA
+                    <p class="text-sm text-slate-400 mb-2">
+                        Nivel: <span class="font-medium text-{{ resume_health.color }}-400">{{ resume_health.level }}</span>
+                    </p>
+                    <a href="{% url 'resume_edit' %}"
+                        class="text-sm text-blue-400 font-medium hover:text-blue-300 flex items-center gap-1">
+                        Mejorar CV
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
-                    </button>
+                    </a>
                 </div>
             </div>
 
             <div class="mt-6 space-y-3">
+                {% for check in resume_health.checks|slice:":3" %}
                 <div class="flex items-center justify-between text-sm">
-                    <span class="text-slate-400">Experiencia</span>
+                    <span class="text-slate-400">{{ check.label }}</span>
+                    {% if check.status %}
                     <span class="text-emerald-400">Excelente</span>
+                    {% else %}
+                    <span class="text-amber-400">Mejorable</span>
+                    {% endif %}
                 </div>
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-slate-400">Habilidades Técnicas</span>
-                    <span class="text-amber-400">Sugerencias (2)</span>
-                </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full mt-1">
-                    <div class="bg-amber-400 h-1.5 rounded-full" style="width: 70%"></div>
-                </div>
+                {% endfor %}
             </div>
+
+            {% if resume_health.suggestions %}
+            <div class="mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                <p class="text-xs text-amber-400 font-medium mb-1">💡 Sugerencia:</p>
+                <p class="text-xs text-slate-400">{{ resume_health.suggestions.0 }}</p>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-slate-400 text-sm mb-4">Aún no has creado tu perfil.</p>
+                <a href="{% url 'resume_edit' %}"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors">
+                    Crear CV Ahora
+                </a>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Recommended Articles -->

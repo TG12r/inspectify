@@ -48,6 +48,11 @@ def resume_edit(request):
         form = ResumeForm(instance=resume)
         profile_form = UserProfileForm(instance=profile)
     
+    
+    # Calculate Resume Health
+    from .services.health_service import calculate_resume_health
+    resume_health = calculate_resume_health(resume)
+
     context = {
         'form': form,
         'profile_form': profile_form,
@@ -55,6 +60,7 @@ def resume_edit(request):
         'experiences': resume.experiences.all(),
         'educations': resume.education.all(),
         'skills': resume.skills.all(),
+        'resume_health': resume_health,
     }
     return render(request, 'resume/resume_edit.html', context)
 
