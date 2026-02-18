@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import UserRegistrationForm
 
@@ -65,6 +66,53 @@ def login_view(request):
             
     return render(request, 'core/login.html', {'form': form})
 
+@login_required
 def logout_view(request):
     logout(request)
     return redirect('dashboard')
+
+from django.db.models import Q
+from jobs.models import JobOffer
+from repository.models import Document
+from .models import UserProfile
+
+def search(request):
+    query = request.GET.get('q', '')
+    
+    jobs = []
+    documents = []
+    profiles = []
+    
+    if query:
+        # Search Jobs
+        jobs = JobOffer.objects.filter(
+            Q(title__icontains=query) | 
+            Q(company__icontains=query) | 
+            Q(description__icontains=query),
+            is_active=True
+        ).distinct()[:5] # Limit to 5 for now
+        
+        # Search Documents
+        documents = Document.objects.filter(
+            Q(title__icontains=query) | 
+            Q(description__icontains=query),
+            is_public=True
+        ).distinct()[:5]
+        
+        # Search Profiles
+        profiles = UserProfile.objects.filter(
+            Q(title__icontains=query) | 
+            Q(bio__icontains=query) |
+            Q(user__first_name__icontains=query) |
+            Q(user__last_name__icontains=query) |
+            Q(user__username__icontains=query)
+        ).select_related('user').distinct()[:5]
+        
+    return render(request, 'core/search_results.html', {
+        'query': query,
+        'jobs': jobs,
+        'documents': documents,
+        'profiles': profiles,
+        'total_results': len(jobs) + len(documents) + len(profiles)
+    })
+

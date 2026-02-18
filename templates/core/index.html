@@ -7,7 +7,7 @@
     <div class="lg:col-span-2 space-y-6">
 
         <!-- Search Bar -->
-        <div class="relative group">
+        <form action="{% url 'global_search' %}" method="GET" class="relative group">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg class="h-5 w-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
@@ -15,10 +15,10 @@
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </div>
-            <input type="text"
+            <input type="text" name="q"
                 class="block w-full pl-10 pr-3 py-3 border border-slate-700 rounded-xl leading-5 bg-slate-800 text-slate-300 placeholder-slate-500 focus:outline-none focus:bg-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm transition-all shadow-lg"
                 placeholder="Buscar empleos, normas o documentos técnicos...">
-        </div>
+        </form>
 
         <!-- Section Title -->
         <div class="flex items-center justify-between">
@@ -108,7 +108,9 @@
 
                 <div class="flex-1">
                     <p class="text-sm text-slate-400 mb-2">
-                        Nivel: <span class="font-medium text-{{ resume_health.color }}-400">{{ resume_health.level }}</span>
+                        Nivel: <span class="font-medium text-{{ resume_health.color }}-400">
+                            {{ resume_health.level }}
+                        </span>
                     </p>
                     <a href="{% url 'resume_edit' %}"
                         class="text-sm text-blue-400 font-medium hover:text-blue-300 flex items-center gap-1">

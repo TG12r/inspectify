@@ -184,13 +184,26 @@ def delete_skill(request, pk):
 @require_http_methods(['POST'])
 def rewrite_description(request):
     try:
+        # Rate Limiting
+        from django.core.cache import cache
+        from datetime import date
+        
+        user_id = request.user.id
+        today = date.today().isoformat()
+        cache_key = f"ai_limit_{user_id}_{today}"
+        
+        # Limit: 10 requests per day
+        limit = 10
+        current_count = cache.get(cache_key, 0)
+        
+        if current_count >= limit:
+            return HttpResponse(
+                f"<div class='text-red-400 text-sm mt-1'>Límite diario alcanzado ({limit}/{limit}). Intenta mañana.</div>",
+                status=429
+            )
+            
         data = request.POST
         current_text = data.get('description', '')
-        # Form field names might be prefixed if using prefixes, but here it seems standard modelform.
-        # However, the textarea name in the template is usually 'description'.
-        # Let's check if we need to handle 'job_title' from the form.
-        # The form inputs are available in request.POST
-        
         job_title = data.get('job_title', 'Professional')
         
         from .services.ai_service import AIService
@@ -198,14 +211,13 @@ def rewrite_description(request):
         
         improved_text = ai_service.improve_description(current_text, job_title)
         
+        # Increment counter
+        cache.set(cache_key, current_count + 1, timeout=86400) # 24 hours timeout
+        
         # Create a form instance with the new data to render the widget correctly
         from .forms import ExperienceForm
-        # We need to preserve other attrs if possible, but simplest is to render just the field with new initial
-        # However, if we just render the field, we might lose custom attrs from the form definition if not careful.
-        # But ExperienceForm definition is standard.
         form = ExperienceForm(initial={'description': improved_text})
         
-        # Return the rendered widget (outerHTML of the textarea)
         return HttpResponse(form['description'])
 
     except Exception as e:
