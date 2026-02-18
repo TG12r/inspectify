@@ -179,3 +179,34 @@ def delete_skill(request, pk):
     skill = get_object_or_404(Skill, pk=pk, resume__user=request.user)
     skill.delete()
     return HttpResponse("")
+
+@login_required
+@require_http_methods(['POST'])
+def rewrite_description(request):
+    try:
+        data = request.POST
+        current_text = data.get('description', '')
+        # Form field names might be prefixed if using prefixes, but here it seems standard modelform.
+        # However, the textarea name in the template is usually 'description'.
+        # Let's check if we need to handle 'job_title' from the form.
+        # The form inputs are available in request.POST
+        
+        job_title = data.get('job_title', 'Professional')
+        
+        from .services.ai_service import AIService
+        ai_service = AIService()
+        
+        improved_text = ai_service.improve_description(current_text, job_title)
+        
+        # Create a form instance with the new data to render the widget correctly
+        from .forms import ExperienceForm
+        # We need to preserve other attrs if possible, but simplest is to render just the field with new initial
+        # However, if we just render the field, we might lose custom attrs from the form definition if not careful.
+        # But ExperienceForm definition is standard.
+        form = ExperienceForm(initial={'description': improved_text})
+        
+        # Return the rendered widget (outerHTML of the textarea)
+        return HttpResponse(form['description'])
+
+    except Exception as e:
+        return HttpResponse(f"Error: {str(e)}", status=500)

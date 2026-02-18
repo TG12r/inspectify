@@ -5,16 +5,16 @@
 }
 
 ::-webkit-scrollbar-track {
-    background: #1e293b; 
+    background: #1e293b;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #475569; 
+    background: #475569;
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #64748b; 
+    background: #64748b;
 }
 
 body {
@@ -32,4 +32,24 @@ body {
     background: linear-gradient(to right, #38bdf8, #818cf8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+/* HTMX Indicator Styles */
+.htmx-indicator {
+    display: none;
+    /* Hidden by default */
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+}
+
+.htmx-request .htmx-indicator {
+    display: inline-flex;
+    /* Show when parent has .htmx-request */
+    opacity: 1;
+}
+
+.htmx-request.htmx-indicator {
+    display: inline-flex;
+    /* Show when element itself has .htmx-request */
+    opacity: 1;
 }
