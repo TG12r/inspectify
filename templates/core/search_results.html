@@ -111,8 +111,9 @@
                     </div>
                     {% endif %}
                     <div>
-                        <h3 class="font-medium text-white group-hover:text-purple-400">{{
-                            profile.user.get_full_name|default:profile.user.username }}</h3>
+                        <h3 class="font-medium text-white group-hover:text-purple-400">
+                            {{ profile.user.get_full_name|default:profile.user.username }}
+                        </h3>
                         <p class="text-xs text-slate-400">{{ profile.title|default:"Sin título" }}</p>
                     </div>
                 </div>

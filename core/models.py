@@ -56,3 +56,22 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.user.username}"
+
+class Connection(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pendiente'),
+        ('ACCEPTED', 'Aceptada'),
+        ('REJECTED', 'Rechazada'),
+    )
+
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_connections')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_connections')
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+
+    class Meta:
+        unique_together = ('sender', 'receiver')
+
+    def __str__(self):
+        return f"{self.sender} -> {self.receiver} ({self.status})"
+

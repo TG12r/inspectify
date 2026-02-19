@@ -15,10 +15,14 @@ def index(request):
     recommended_jobs = []
     recommended_docs = []
     resume_health = None
+    recommended_people = []
     
     if request.user.is_authenticated:
         recommended_jobs = get_recommended_jobs(request.user, limit=3)
         recommended_docs = get_recommended_documents(request.user, limit=3)
+
+        from core.services import get_recommended_people
+        recommended_people = get_recommended_people(request.user, limit=4)
         
         if hasattr(request.user, 'resume'):
             resume_health = calculate_resume_health(request.user.resume)
@@ -26,7 +30,8 @@ def index(request):
     return render(request, 'core/index.html', {
         'recommended_jobs': recommended_jobs,
         'recommended_docs': recommended_docs,
-        'resume_health': resume_health
+        'resume_health': resume_health,
+        'recommended_people': recommended_people,
     })
 
 from .models import UserProfile

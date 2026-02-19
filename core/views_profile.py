@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import UserProfile
+from .models import UserProfile, Connection
 from django.contrib import messages
 from django import forms
+from django.db.models import Q
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
@@ -44,14 +45,33 @@ def profile_view(request, slug=None):
         education = []
         skills = []
     
+    # Connection status for the Connect button
+    connection_status = None
+    connection = None
+    if request.user.is_authenticated and not is_owner:
+        conn = Connection.objects.filter(
+            Q(sender=request.user, receiver=user_obj) |
+            Q(sender=user_obj, receiver=request.user)
+        ).first()
+        if conn:
+            connection = conn
+            if conn.status == 'ACCEPTED':
+                connection_status = 'ACCEPTED'
+            elif conn.status == 'PENDING' and conn.sender == request.user:
+                connection_status = 'PENDING_SENT'
+            elif conn.status == 'PENDING' and conn.receiver == request.user:
+                connection_status = 'PENDING_RECEIVED'
+
     return render(request, 'core/profile_detail.html', {
         'profile': profile,
-        'user_obj': user_obj, # Pass specific user object
+        'user': user_obj,
         'is_owner': is_owner,
         'resume': resume,
         'experiences': experiences,
         'education': education,
-        'skills': skills
+        'skills': skills,
+        'connection_status': connection_status,
+        'connection': connection,
     })
 
 @login_required

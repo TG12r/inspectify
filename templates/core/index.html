@@ -196,6 +196,47 @@
             </div>
         </div>
 
+        <!-- People You May Know Widget -->
+        {% if user.is_authenticated and recommended_people %}
+        <div class="glass-panel p-6 rounded-xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">Personas que quizás conozcas</h3>
+                <a href="{% url 'my_connections' %}" class="text-xs text-purple-400 hover:text-purple-300">Ver todo</a>
+            </div>
+            <div class="space-y-3">
+                {% for profile in recommended_people %}
+                <div class="flex items-center justify-between gap-3">
+                    <a href="{% url 'public_profile' profile.slug %}" class="flex items-center gap-3 group min-w-0">
+                        {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                        {% else %}
+                        <div
+                            class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                        {% endif %}
+                        <div class="min-w-0">
+                            <p
+                                class="text-sm font-medium text-white group-hover:text-purple-400 transition-colors truncate">
+                                {{ profile.user.get_full_name|default:profile.user.username }}
+                            </p>
+                            <p class="text-xs text-slate-400 truncate">{{ profile.title|default:"Inspector" }}</p>
+                        </div>
+                    </a>
+                    <button hx-post="{% url 'send_connection_request' profile.user.id %}" hx-target="this"
+                        hx-swap="outerHTML"
+                        class="flex-shrink-0 text-xs px-2.5 py-1 rounded-full bg-purple-600 hover:bg-purple-700 text-white transition-colors">
+                        + Conectar
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

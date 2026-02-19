@@ -64,6 +64,42 @@
                                     });
                                 }
                             </script>
+                            {% else %}
+                            {# Connect button for visitors #}
+                            {% if request.user.is_authenticated %}
+                            <div id="connect-btn-wrapper">
+                                {% if connection_status == 'ACCEPTED' %}
+                                <span
+                                    class="text-sm px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Conectado
+                                </span>
+                                {% elif connection_status == 'PENDING_SENT' %}
+                                <span
+                                    class="text-sm px-3 py-1.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1">
+                                    Solicitud Enviada
+                                </span>
+                                {% elif connection_status == 'PENDING_RECEIVED' %}
+                                <a href="{% url 'manage_connection' connection.pk 'accept' %}"
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
+                                    Aceptar Solicitud
+                                </a>
+                                {% else %}
+                                <button hx-post="{% url 'send_connection_request' user.id %}"
+                                    hx-target="#connect-btn-wrapper" hx-swap="outerHTML"
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Conectar
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% endif %}
                             {% endif %}
                         </div>
                     </div>
