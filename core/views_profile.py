@@ -220,7 +220,7 @@ def delete_profile_post_comment(request, comment_id):
         return HttpResponse("No tienes permiso para eliminar este comentario.", status=403)
     
     comment.delete()
-    return HttpResponse("", status=204)
+    return HttpResponse("", status=200)
 
 
 @login_required
@@ -233,5 +233,5 @@ def delete_profile_post(request, post_id):
         return HttpResponse("No tienes permiso para eliminar este post.", status=403)
     
     post.delete()
-    return HttpResponse("", status=204)
+    return HttpResponse("", status=200)
 

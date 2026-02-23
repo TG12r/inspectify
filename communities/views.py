@@ -307,5 +307,5 @@ def delete_comment(request, comment_id):
         return HttpResponse("No tienes permiso para eliminar este comentario.", status=403)
     
     comment.delete()
-    return HttpResponse("", status=204)
+    return HttpResponse("", status=200)
 
