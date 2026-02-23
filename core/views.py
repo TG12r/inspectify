@@ -16,13 +16,15 @@ def index(request):
     recommended_docs = []
     resume_health = None
     recommended_people = []
+    recommended_posts = {'friends': [], 'all': []}
     
     if request.user.is_authenticated:
         recommended_jobs = get_recommended_jobs(request.user, limit=3)
         recommended_docs = get_recommended_documents(request.user, limit=3)
 
-        from core.services import get_recommended_people
+        from core.services import get_recommended_people, get_recommended_posts
         recommended_people = get_recommended_people(request.user, limit=4)
+        recommended_posts = get_recommended_posts(request.user, limit=5)
         
         if hasattr(request.user, 'resume'):
             resume_health = calculate_resume_health(request.user.resume)
@@ -32,6 +34,7 @@ def index(request):
         'recommended_docs': recommended_docs,
         'resume_health': resume_health,
         'recommended_people': recommended_people,
+        'recommended_posts': recommended_posts,
     })
 
 from .models import UserProfile

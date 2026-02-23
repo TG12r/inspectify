@@ -84,6 +84,140 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- Posts Recomendados Section -->
+        {% if user.is_authenticated %}
+        <div class="space-y-4">
+            <!-- Section Title with Tabs -->
+            <div class="flex items-center gap-0 border-b border-slate-700">
+                <button onclick="switchPostsTab('all')" 
+                        id="posts-tab-all"
+                        class="px-4 py-3 font-medium text-white border-b-2 border-purple-500 hover:text-purple-400 transition-colors posts-tab-btn active">
+                    🌟 Todo
+                </button>
+                <button onclick="switchPostsTab('friends')" 
+                        id="posts-tab-friends"
+                        class="px-4 py-3 font-medium text-slate-400 border-b-2 border-transparent hover:text-white transition-colors posts-tab-btn">
+                        De Amigos
+                </button>
+            </div>
+
+            <!-- Friends Posts Tab -->
+            <div id="posts-tab-friends-content" class="posts-tab-content space-y-4 hidden">
+                {% if recommended_posts.friends %}
+                    {% for post in recommended_posts.friends %}
+                    <div class="glass-panel p-5 rounded-xl hover:border-slate-600 transition-all group cursor-pointer">
+                        <div class="flex items-start gap-3">
+                            <!-- Author Avatar -->
+                            {% if post.author.profile.avatar %}
+                            <img src="{{ post.author.profile.avatar.url }}" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                            {% else %}
+                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-bold flex-shrink-0">
+                                {{ post.author.username|slice:":2"|upper }}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex-1 min-w-0">
+                                <!-- Author Info -->
+                                <div class="flex items-center gap-2">
+                                    <a href="{% url 'public_profile' post.author.profile.slug %}" class="font-semibold text-white hover:text-purple-400 transition-colors">
+                                        {{ post.author.get_full_name|default:post.author.username }}
+                                    </a>
+                                    <span class="text-xs px-2 py-0.5 rounded-full font-medium
+                                        {% if post.post_type == 'ACHIEVEMENT' %}bg-amber-500/20 text-amber-400
+                                        {% elif post.post_type == 'PROJECT' %}bg-blue-500/20 text-blue-400
+                                        {% elif post.post_type == 'CERTIFICATION' %}bg-emerald-500/20 text-emerald-400
+                                        {% elif post.post_type == 'ARTICLE' %}bg-purple-500/20 text-purple-400
+                                        {% else %}bg-slate-700 text-slate-400{% endif %}">
+                                        {% if post.post_type == 'ACHIEVEMENT' %}🏆
+                                        {% elif post.post_type == 'PROJECT' %}🚀
+                                        {% elif post.post_type == 'CERTIFICATION' %}📜
+                                        {% elif post.post_type == 'ARTICLE' %}📝
+                                        {% else %}💬{% endif %}
+                                    </span>
+                                </div>
+                                
+                                <!-- Content -->
+                                {% if post.title %}
+                                <h4 class="text-sm font-semibold text-white mt-1">{{ post.title }}</h4>
+                                {% endif %}
+                                <p class="text-sm text-slate-300 mt-1 line-clamp-2">{{ post.content }}</p>
+                                
+                                <!-- Engagement Stats -->
+                                <div class="flex items-center gap-3 mt-3 text-xs text-slate-500">
+                                    <span>👍 {{ post.reaction_count }}</span>
+                                    <span>💬 {{ post.comment_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="glass-panel p-8 rounded-xl text-center">
+                    <p class="text-slate-400">No hay posts de tus amigos aún. <br><span class="text-xs">¡Conéctate con más personas!</span></p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- All Posts Tab -->
+            <div id="posts-tab-all-content" class="posts-tab-content space-y-4">
+                {% if recommended_posts.all %}
+                    {% for post in recommended_posts.all %}
+                    <div class="glass-panel p-5 rounded-xl hover:border-slate-600 transition-all group cursor-pointer">
+                        <div class="flex items-start gap-3">
+                            <!-- Author Avatar -->
+                            {% if post.author.profile.avatar %}
+                            <img src="{{ post.author.profile.avatar.url }}" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                            {% else %}
+                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-bold flex-shrink-0">
+                                {{ post.author.username|slice:":2"|upper }}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex-1 min-w-0">
+                                <!-- Author Info -->
+                                <div class="flex items-center gap-2">
+                                    <a href="{% url 'public_profile' post.author.profile.slug %}" class="font-semibold text-white hover:text-purple-400 transition-colors">
+                                        {{ post.author.get_full_name|default:post.author.username }}
+                                    </a>
+                                    <span class="text-xs px-2 py-0.5 rounded-full font-medium
+                                        {% if post.post_type == 'ACHIEVEMENT' %}bg-amber-500/20 text-amber-400
+                                        {% elif post.post_type == 'PROJECT' %}bg-blue-500/20 text-blue-400
+                                        {% elif post.post_type == 'CERTIFICATION' %}bg-emerald-500/20 text-emerald-400
+                                        {% elif post.post_type == 'ARTICLE' %}bg-purple-500/20 text-purple-400
+                                        {% else %}bg-slate-700 text-slate-400{% endif %}">
+                                        {% if post.post_type == 'ACHIEVEMENT' %}🏆
+                                        {% elif post.post_type == 'PROJECT' %}🚀
+                                        {% elif post.post_type == 'CERTIFICATION' %}📜
+                                        {% elif post.post_type == 'ARTICLE' %}📝
+                                        {% else %}💬{% endif %}
+                                    </span>
+                                </div>
+                                
+                                <!-- Content -->
+                                {% if post.title %}
+                                <h4 class="text-sm font-semibold text-white mt-1">{{ post.title }}</h4>
+                                {% endif %}
+                                <p class="text-sm text-slate-300 mt-1 line-clamp-2">{{ post.content }}</p>
+                                
+                                <!-- Engagement Stats -->
+                                <div class="flex items-center gap-3 mt-3 text-xs text-slate-500">
+                                    <span>👍 {{ post.reaction_count }}</span>
+                                    <span>💬 {{ post.comment_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="glass-panel p-8 rounded-xl text-center">
+                    <p class="text-slate-400">No hay posts recomendados por ahora. <br><span class="text-xs">Vuelve más tarde</span></p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
     </div>
 
     <!-- Right Sidebar (Widgets) -->
@@ -239,4 +373,25 @@
 
     </div>
 </div>
+
+<script>
+function switchPostsTab(tabName) {
+    // Hide all post tabs
+    document.querySelectorAll('.posts-tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    
+    // Show selected tab
+    document.getElementById('posts-tab-' + tabName + '-content').classList.remove('hidden');
+    
+    // Update button styles
+    document.querySelectorAll('.posts-tab-btn').forEach(btn => {
+        btn.classList.remove('border-purple-500', 'text-white');
+        btn.classList.add('border-transparent', 'text-slate-400');
+    });
+    
+    document.getElementById('posts-tab-' + tabName).classList.add('border-purple-500', 'text-white');
+    document.getElementById('posts-tab-' + tabName).classList.remove('border-transparent', 'text-slate-400');
+}
+</script>
 {% endblock %}

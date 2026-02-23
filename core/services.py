@@ -70,3 +70,67 @@ def get_recommended_people(user, limit=4):
     # Sort descending, return top N
     scored.sort(key=lambda x: x[0], reverse=True)
     return [p for _, p in scored[:limit]]
+
+
+def get_recommended_posts(user, limit=5):
+    """
+    Recommend profile posts to user.
+    Returns: {'friends': [...], 'all': [...]}
+    
+    Algorithm:
+    - Friends posts: Posts from connected users, sorted by reactions + comments
+    - All posts: Top posts by engagement, excluding self posts
+    """
+    from .models import Connection, ProfilePost
+    from django.db.models import Count, Q
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # Get user's connections
+    connections = Connection.objects.filter(
+        Q(sender=user, status='ACCEPTED') | Q(receiver=user, status='ACCEPTED')
+    )
+    
+    connected_user_ids = set()
+    for conn in connections:
+        if conn.sender_id == user.id:
+            connected_user_ids.add(conn.receiver_id)
+        else:
+            connected_user_ids.add(conn.sender_id)
+    
+    # Posts from friends (last 30 days, sorted by engagement)
+    friends_posts = (
+        ProfilePost.objects
+        .filter(author_id__in=connected_user_ids)
+        .annotate(engagement=Count('reactions') + Count('comments'))
+        .order_by('-engagement', '-created_at')
+        .select_related('author__profile')
+        .prefetch_related('reactions', 'comments')
+        [:limit]
+    )
+    
+    # All posts (excluding user's own posts, last 30 days)
+    recent_threshold = timezone.now() - timedelta(days=30)
+    all_posts = (
+        ProfilePost.objects
+        .exclude(author=user)
+        .filter(created_at__gte=recent_threshold)
+        .annotate(engagement=Count('reactions') + Count('comments'))
+        .order_by('-engagement', '-created_at')
+        .select_related('author__profile')
+        .prefetch_related('reactions', 'comments')
+        [:limit]
+    )
+    
+    # Add reaction type for each post
+    for post in friends_posts:
+        post.user_reaction_type = post.get_user_reaction(user)
+        
+    for post in all_posts:
+        post.user_reaction_type = post.get_user_reaction(user)
+    
+    return {
+        'friends': friends_posts,
+        'all': all_posts,
+    }
+
