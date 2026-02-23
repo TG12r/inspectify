@@ -1,0 +1,43 @@
+{% load humanize %}
+
+<!-- Formulario para nuevo comentario -->
+{% if user.is_authenticated %}
+<form hx-post="{% url 'add_profile_post_comment' post.id %}" 
+      hx-target="#comment-list-{{ post.id }}" 
+      hx-swap="afterbegin"
+      hx-on::after-request="this.reset()"
+      class="mb-4">
+    {% csrf_token %}
+    <div class="flex gap-2">
+        {% if user.profile.avatar %}
+        <img src="{{ user.profile.avatar.url }}" class="w-7 h-7 rounded-full object-cover flex-shrink-0">
+        {% else %}
+        <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-bold flex-shrink-0">
+            {{ user.username|slice:":2"|upper }}
+        </div>
+        {% endif %}
+        
+        <div class="flex-1">
+            <textarea 
+                name="content" 
+                rows="2" 
+                placeholder="Escribe un comentario..."
+                class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2 text-slate-300 placeholder-slate-500 text-xs resize-none focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                required></textarea>
+            <button type="submit" 
+                class="mt-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium transition-colors">
+                Comentar
+            </button>
+        </div>
+    </div>
+</form>
+{% endif %}
+
+<!-- Lista de comentarios -->
+<div id="comment-list-{{ post.id }}" class="space-y-3">
+    {% for comment in comments %}
+        {% include 'core/_profile_comment_item.html' %}
+    {% empty %}
+        <p class="text-slate-500 text-xs text-center py-2">No hay comentarios aún.</p>
+    {% endfor %}
+</div>

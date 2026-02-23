@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="glass-panel rounded-2xl overflow-hidden">
+        <div
+            class="h-40 relative {% if not community.cover %}bg-gradient-to-br from-purple-900 via-slate-800 to-slate-900{% endif %}">
+            {% if community.cover %}<img src="{{ community.cover.url }}" class="w-full h-full object-cover">{% endif %}
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
+        </div>
+
+        <div class="px-6 pb-6 -mt-8 relative">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h1 class="text-2xl font-bold text-white">{{ community.name }}</h1>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-purple-600/60 text-purple-200">
+                            {{ community.get_category_display }}
+                        </span>
+                        {% if community.privacy == 'PRIVATE' %}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">🔒 Privada</span>
+                        {% endif %}
+                    </div>
+                    {% if community.description %}
+                    <p class="text-slate-400 mt-2 max-w-2xl">{{ community.description }}</p>
+                    {% endif %}
+                    <div class="flex items-center gap-4 mt-3 text-sm">
+                        <p class="text-slate-500">👥 
+                            {{ community.member_count }} miembro{{ community.member_count|pluralize:",s" }}
+                        </p>
+                        <p class="text-slate-500">📝 
+                            {{ post_stats.total }} publicacion{{ post_stats.total|pluralize:"es,es" }}
+                        </p>
+                        {% if post_stats.offers > 0 %}
+                        <p class="text-amber-400/80">💼 {{ post_stats.offers }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if user.is_authenticated %}
+                <div id="join-section">
+                    {% if is_member %}
+                    <button hx-post="{% url 'toggle_membership' community.slug %}" hx-target="#join-section"
+                        hx-swap="outerHTML"
+                        class="px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 text-white transition-colors">
+                        Abandonar
+                    </button>
+                    {% else %}
+                    <button hx-post="{% url 'toggle_membership' community.slug %}" hx-target="#join-section"
+                        hx-swap="outerHTML"
+                        class="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white transition-colors">
+                        Unirse
+                    </button>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Feed -->
+        <div class="lg:col-span-2 space-y-4">
+
+            <!-- Filtros de tipo de post -->
+            <div class="glass-panel p-4 rounded-2xl">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm text-slate-400 mr-2">Filtrar por:</span>
+                    <button onclick="filterPosts('ALL')" data-filter="ALL"
+                        class="filter-btn px-3 py-1.5 text-xs font-medium rounded-full border border-purple-500 bg-purple-500/20 text-purple-300">
+                        Todos
+                    </button>
+                    <button onclick="filterPosts('GENERAL')" data-filter="GENERAL"
+                        class="filter-btn px-3 py-1.5 text-xs font-medium rounded-full border border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500 hover:text-slate-300 transition-colors">
+                        💬 General
+                    </button>
+                    <button onclick="filterPosts('OFFER')" data-filter="OFFER"
+                        class="filter-btn px-3 py-1.5 text-xs font-medium rounded-full border border-slate-600 bg-slate-800/50 text-slate-400 hover:border-amber-500 hover:text-amber-400 transition-colors">
+                        💼 Ofertas
+                    </button>
+                    <button onclick="filterPosts('NEWS')" data-filter="NEWS"
+                        class="filter-btn px-3 py-1.5 text-xs font-medium rounded-full border border-slate-600 bg-slate-800/50 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">
+                        📰 Noticias
+                    </button>
+                    <button onclick="filterPosts('QUESTION')" data-filter="QUESTION"
+                        class="filter-btn px-3 py-1.5 text-xs font-medium rounded-full border border-slate-600 bg-slate-800/50 text-slate-400 hover:border-sky-500 hover:text-sky-400 transition-colors">
+                        ❓ Consultas
+                    </button>
+                </div>
+            </div>
+
+            <!-- Post composer -->
+            {% if is_member %}
+            <div class="glass-panel p-5 rounded-2xl">
+                <form hx-post="{% url 'create_post' community.slug %}" hx-target="#posts-feed" hx-swap="afterbegin"
+                    hx-on::after-request="this.reset()" class="space-y-3">
+                    {% csrf_token %}
+                    <textarea name="content" rows="3" placeholder="Comparte algo con la comunidad..."
+                        class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-300 placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"></textarea>
+                    <div class="flex items-center justify-between">
+                        <select name="post_type"
+                            class="bg-slate-800 border border-slate-700 text-slate-400 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-purple-500">
+                            <option value="GENERAL">💬 General</option>
+                            <option value="OFFER">💼 Oferta Laboral</option>
+                            <option value="NEWS">📰 Noticia</option>
+                            <option value="QUESTION">❓ Consulta</option>
+                        </select>
+                        <button type="submit"
+                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors">
+                            Publicar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Posts -->
+            <div id="posts-feed" class="space-y-4">
+                {% for post in posts %}
+                {% include 'communities/_post_card.html' %}
+                {% empty %}
+                <div class="glass-panel rounded-2xl p-10 text-center text-slate-500">
+                    <p>Aún no hay publicaciones.</p>
+                    {% if is_member %}<p class="text-sm mt-1">¡Sé el primero en publicar!</p>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sidebar: Members -->
+        <div class="space-y-6">
+            <div class="glass-panel p-5 rounded-2xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-white">Miembros</h3>
+                    <span class="text-xs text-slate-500">{{ community.member_count }}</span>
+                </div>
+                <div class="space-y-3">
+                    {% for membership in members %}
+                    <div class="flex items-center justify-between gap-3">
+                        <a href="{% url 'public_profile' membership.user.profile.slug %}"
+                            class="flex items-center gap-3 group min-w-0">
+                            {% if membership.user.profile.avatar %}
+                            <img src="{{ membership.user.profile.avatar.url }}"
+                                class="w-9 h-9 rounded-full object-cover flex-shrink-0">
+                            {% else %}
+                            <div
+                                class="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 flex-shrink-0 text-xs font-bold">
+                                {{ membership.user.username|slice:":2"|upper }}
+                            </div>
+                            {% endif %}
+                            <div class="min-w-0">
+                                <p
+                                    class="text-sm font-medium text-white group-hover:text-purple-400 transition-colors truncate">
+                                    {{ membership.user.get_full_name|default:membership.user.username }}
+                                </p>
+                                {% if membership.role == 'ADMIN' %}
+                                <p class="text-xs text-purple-400">Admin</p>
+                                {% else %}
+                                <p class="text-xs text-slate-500">{{ membership.user.profile.title|default:"Miembro" }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </a>
+                        {% if user.is_authenticated and membership.user != user %}
+                        <button hx-post="{% url 'send_connection_request' membership.user.id %}" hx-target="this"
+                            hx-swap="outerHTML"
+                            class="flex-shrink-0 text-xs px-2 py-1 rounded-full bg-slate-700 hover:bg-purple-700 text-slate-300 hover:text-white transition-colors">
+                            +
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <a href="{% url 'community_list' %}"
+                class="block text-center text-sm text-slate-400 hover:text-white transition-colors">
+                ← Ver todas las comunidades
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Filtrado de posts
+function filterPosts(type) {
+    const posts = document.querySelectorAll('#posts-feed > div');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    
+    // Actualizar estilos de botones
+    filterButtons.forEach(btn => {
+        if (btn.dataset.filter === type) {
+            btn.classList.remove('border-slate-600', 'bg-slate-800/50', 'text-slate-400');
+            btn.classList.add('border-purple-500', 'bg-purple-500/20', 'text-purple-300');
+        } else {
+            btn.classList.add('border-slate-600', 'bg-slate-800/50', 'text-slate-400');
+            btn.classList.remove('border-purple-500', 'bg-purple-500/20', 'text-purple-300');
+        }
+    });
+    
+    // Filtrar posts
+    posts.forEach(post => {
+        if (type === 'ALL') {
+            post.style.display = 'block';
+        } else {
+            const postType = post.querySelector('[class*="border-"]').className;
+            const shouldShow = 
+                (type === 'OFFER' && postType.includes('border-amber')) ||
+                (type === 'QUESTION' && postType.includes('border-sky')) ||
+                (type === 'NEWS' && postType.includes('border-emerald')) ||
+                (type === 'GENERAL' && postType.includes('border-slate-700'));
+            
+            post.style.display = shouldShow ? 'block' : 'none';
+        }
+    });
+}
+</script>
+
+{% endblock %}

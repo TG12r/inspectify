@@ -75,3 +75,80 @@ class Connection(models.Model):
     def __str__(self):
         return f"{self.sender} -> {self.receiver} ({self.status})"
 
+
+class ProfilePost(models.Model):
+    POST_TYPE_CHOICES = [
+        ('GENERAL', 'General'),
+        ('ACHIEVEMENT', 'Logro'),
+        ('PROJECT', 'Proyecto'),
+        ('CERTIFICATION', 'Certificación'),
+        ('ARTICLE', 'Artículo'),
+    ]
+
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile_posts')
+    content = models.TextField(max_length=2000)
+    post_type = models.CharField(max_length=20, choices=POST_TYPE_CHOICES, default='GENERAL')
+    title = models.CharField(max_length=200, blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
+    image = models.ImageField(upload_to='profile_posts/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def reaction_count(self):
+        return self.reactions.count()
+
+    @property
+    def comment_count(self):
+        return self.comments.count()
+
+    def get_user_reaction(self, user):
+        if not user.is_authenticated:
+            return None
+        reaction = self.reactions.filter(user=user).first()
+        return reaction.reaction_type if reaction else None
+
+    def __str__(self):
+        return f"Post by {self.author.username} - {self.created_at.strftime('%Y-%m-%d')}"
+
+
+class ProfilePostReaction(models.Model):
+    REACTION_CHOICES = [
+        ('LIKE', '👍'),
+        ('LOVE', '❤️'),
+        ('CELEBRATE', '🎉'),
+        ('SUPPORT', '💪'),
+        ('INSIGHTFUL', '💡'),
+    ]
+
+    post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE, related_name='reactions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile_post_reactions')
+    reaction_type = models.CharField(max_length=15, choices=REACTION_CHOICES, default='LIKE')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('post', 'user')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} - {self.get_reaction_type_display()} on ProfilePost {self.post.id}"
+
+
+class ProfilePostComment(models.Model):
+    post = models.ForeignKey(ProfilePost, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile_post_comments')
+    content = models.TextField(max_length=1000)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Comment by {self.author} on ProfilePost {self.post.id}"
+
+

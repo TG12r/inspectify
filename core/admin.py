@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, UserProfile
+from .models import User, UserProfile, ProfilePost, ProfilePostReaction, ProfilePostComment
 
 # Admin Site Config
 admin.site.site_header = 'Inspectify Admin'
@@ -23,3 +23,25 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('Inspectify Role', {'fields': ('role',)}),
     )
+
+
+@admin.register(ProfilePost)
+class ProfilePostAdmin(admin.ModelAdmin):
+    list_display = ('author', 'post_type', 'reaction_count', 'comment_count', 'created_at')
+    list_filter = ('post_type', 'created_at')
+    search_fields = ('content', 'author__username')
+
+
+@admin.register(ProfilePostReaction)
+class ProfilePostReactionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'post', 'reaction_type', 'created_at')
+    list_filter = ('reaction_type',)
+    search_fields = ('user__username', 'post__content')
+
+
+@admin.register(ProfilePostComment)
+class ProfilePostCommentAdmin(admin.ModelAdmin):
+    list_display = ('author', 'post', 'parent', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('content', 'author__username')
+

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     
     # Third party
     'django_htmx',
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
     'jobs',
     'repository',
     'resume',
+    'communities',
     'background_task',
 ]
 

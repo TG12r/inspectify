@@ -1,0 +1,124 @@
+{% load humanize %}
+{% with type_colors="OFFER:amber QUESTION:sky NEWS:emerald GENERAL:slate" %}
+<div
+    class="glass-panel p-5 rounded-2xl border-l-4 {% if post.post_type == 'OFFER' %}border-amber-500{% elif post.post_type == 'QUESTION' %}border-sky-500{% elif post.post_type == 'NEWS' %}border-emerald-500{% else %}border-slate-700{% endif %}">
+    <div class="flex items-start gap-3">
+        <!-- Avatar -->
+        {% if post.author.profile.avatar %}
+        <img src="{{ post.author.profile.avatar.url }}" class="w-9 h-9 rounded-full object-cover flex-shrink-0">
+        {% else %}
+        <div
+            class="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-bold flex-shrink-0">
+            {{ post.author.username|slice:":2"|upper }}
+        </div>
+        {% endif %}
+
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{% url 'public_profile' post.author.profile.slug %}"
+                    class="text-sm font-semibold text-white hover:text-purple-400 transition-colors">
+                    {{ post.author.get_full_name|default:post.author.username }}
+                </a>
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium
+                    {% if post.post_type == 'OFFER' %}bg-amber-500/20 text-amber-400
+                    {% elif post.post_type == 'QUESTION' %}bg-sky-500/20 text-sky-400
+                    {% elif post.post_type == 'NEWS' %}bg-emerald-500/20 text-emerald-400
+                    {% else %}bg-slate-700 text-slate-400{% endif %}">
+                    {% if post.post_type == 'OFFER' %}💼 Oferta
+                    {% elif post.post_type == 'QUESTION' %}❓ Consulta
+                    {% elif post.post_type == 'NEWS' %}📰 Noticia
+                    {% else %}💬 General{% endif %}
+                </span>
+                {% if post.pinned %}<span class="text-xs text-yellow-400">📌</span>{% endif %}
+                <span class="text-xs text-slate-500 ml-auto">{{ post.created_at|naturaltime }}</span>
+            </div>
+
+            <p class="text-slate-300 text-sm mt-2 leading-relaxed whitespace-pre-wrap">{{ post.content }}</p>
+
+            {% if post.job_offer %}
+            <!-- Tarjeta de oferta de trabajo vinculada -->
+            <div class="mt-4 bg-slate-800/50 border border-amber-500/30 rounded-xl p-4 hover:border-amber-500/50 transition-colors">
+                <a href="{% url 'job_detail' post.job_offer.id %}" class="block group">
+                    <div class="flex items-start gap-4">
+                        {% if post.job_offer.company_logo %}
+                        <img src="{{ post.job_offer.company_logo }}" 
+                            class="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-slate-700">
+                        {% else %}
+                        <div class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-white font-semibold text-sm group-hover:text-amber-400 transition-colors truncate">
+                                {{ post.job_offer.title }}
+                            </h4>
+                            <p class="text-slate-400 text-xs mt-1">{{ post.job_offer.company }}</p>
+                            
+                            <div class="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
+                                {% if post.job_offer.location %}
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    {{ post.job_offer.location }}
+                                </span>
+                                {% endif %}
+                                {% if post.job_offer.salary_range %}
+                                <span class="flex items-center gap-1 text-amber-400">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    {{ post.job_offer.salary_range }}
+                                </span>
+                                {% endif %}
+                                {% if post.job_offer.remote %}
+                                <span class="flex items-center gap-1 text-green-400">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                    </svg>
+                                    Remoto
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <span class="text-amber-400 text-xs flex-shrink-0 self-center">
+                            Ver detalles →
+                        </span>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Reacciones y comentarios -->
+            <div class="mt-4 pt-3 border-t border-slate-700/50">
+                <!-- Botones de acción -->
+                <div id="reactions-{{ post.id }}" class="flex items-center gap-4 mb-3">
+                    {% include 'communities/_post_reactions.html' %}
+                </div>
+
+                <!-- Sección de comentarios -->
+                <div class="mt-3">
+                    <button 
+                        hx-get="{% url 'load_comments' post.id %}" 
+                        hx-target="#comments-{{ post.id }}" 
+                        hx-swap="innerHTML"
+                        onclick="this.style.display='none'; document.getElementById('comments-{{ post.id }}').style.display='block';"
+                        class="text-xs text-slate-400 hover:text-purple-400 transition-colors flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        <span>{{ post.comment_count }} comentario{{ post.comment_count|pluralize:",s" }}</span>
+                    </button>
+                    
+                    <div id="comments-{{ post.id }}" class="hidden mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endwith %}

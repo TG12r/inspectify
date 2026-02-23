@@ -58,6 +58,16 @@
                         d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                 </svg>
             </a>
+            {% if user.is_authenticated %}
+            <button onclick="openShareModal()"
+                class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow-lg shadow-purple-500/20 transition-all transform hover:-translate-y-0.5 flex items-center whitespace-nowrap">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                </svg>
+                Compartir en Comunidades
+            </button>
+            {% endif %}
         </div>
 
         <!-- Content -->
@@ -77,4 +87,85 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para compartir en comunidades -->
+{% if user.is_authenticated %}
+<div id="shareModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-lg w-full p-6" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">Compartir en Comunidades</h3>
+            <button onclick="closeShareModal()" class="text-slate-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div id="shareContent" class="space-y-4">
+            <p class="text-slate-400 text-sm">Cargando comunidades...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function openShareModal() {
+    const modal = document.getElementById('shareModal');
+    modal.classList.remove('hidden');
+    
+    // Cargar comunidades con HTMX
+    fetch("{% url 'share_job_to_communities' job.id %}")
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('shareContent').innerHTML = html;
+        });
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.onclick = closeShareModal;
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').classList.add('hidden');
+}
+
+function shareJob(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mostrar mensaje de éxito
+            document.getElementById('shareContent').innerHTML = `
+                <div class="text-center py-8">
+                    <svg class="w-16 h-16 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <p class="text-white font-medium mb-2">¡Compartido exitosamente!</p>
+                    <p class="text-slate-400 text-sm">${data.message}</p>
+                    <button onclick="closeShareModal()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                        Cerrar
+                    </button>
+                </div>
+            `;
+            setTimeout(closeShareModal, 2000);
+        } else {
+            alert(data.error || 'Error al compartir');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al compartir la oferta');
+    });
+}
+</script>
+{% endif %}
+
 {% endblock %}

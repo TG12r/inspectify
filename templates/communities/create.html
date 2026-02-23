@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel rounded-2xl p-8">
+        <h1 class="text-2xl font-bold text-white mb-1">Crear Comunidad</h1>
+        <p class="text-slate-400 text-sm mb-8">Crea un espacio para profesionales con intereses en común.</p>
+
+        {% if error %}
+        <div class="mb-4 p-3 bg-red-900/20 border border-red-800 rounded-lg text-sm text-red-400">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-5">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1.5">Nombre <span
+                        class="text-red-400">*</span></label>
+                <input type="text" name="name" maxlength="100" required
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
+                    placeholder="ej: Inspectores NDT Venezuela">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1.5">Descripción</label>
+                <textarea name="description" rows="3" maxlength="500"
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none transition-colors"
+                    placeholder="¿De qué trata esta comunidad?"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">Categoría</label>
+                    <select name="category"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors">
+                        {% for value, label in categories %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">Privacidad</label>
+                    <select name="privacy"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors">
+                        <option value="OPEN">🌐 Pública</option>
+                        <option value="PRIVATE">🔒 Privada</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                    class="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-colors">
+                    Crear Comunidad
+                </button>
+                <a href="{% url 'community_list' %}"
+                    class="px-6 py-3 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 rounded-xl transition-colors">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
