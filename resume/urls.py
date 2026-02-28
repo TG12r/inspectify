@@ -14,5 +14,6 @@ urlpatterns = [
 
     path('skill/add/', views.add_skill, name='add_skill'),
     path('skill/<int:pk>/delete/', views.delete_skill, name='delete_skill'),
-    path('rewrite-description/', views.rewrite_description, name='rewrite_description'),
+    
+    path('ai/rewrite-description/', views.rewrite_description, name='rewrite_description'),
 ]

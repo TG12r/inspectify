@@ -198,27 +198,53 @@ def rewrite_description(request):
         
         if current_count >= limit:
             return HttpResponse(
-                f"<div class='text-red-400 text-sm mt-1'>Límite diario alcanzado ({limit}/{limit}). Intenta mañana.</div>",
+                f"<textarea class='text-red-400 text-sm mt-1'>Límite diario alcanzado ({limit}/{limit}). Intenta mañana.</textarea>",
                 status=429
             )
             
         data = request.POST
-        current_text = data.get('description', '')
+        improvement_type = data.get('type', 'experience')  # experience, education, summary, skill
+        field_id = data.get('field_id', 'id_description')
+        
+        # Determine field name and get current text
+        if improvement_type == 'summary':
+            field_name = 'bio'
+            current_text = data.get('bio', '')
+        else:
+            field_name = 'description'
+            current_text = data.get('description', '')
+        
         job_title = data.get('job_title', 'Professional')
         
         from .services.ai_service import AIService
         ai_service = AIService()
         
-        improved_text = ai_service.improve_description(current_text, job_title)
+        if improvement_type == 'experience':
+            improved_text = ai_service.improve_description(current_text, job_title)
+        elif improvement_type == 'education':
+            degree = data.get('degree', 'Carrera')
+            institution = data.get('institution', 'Institución')
+            improved_text = ai_service.improve_education_description(current_text, degree, institution)
+        elif improvement_type == 'summary':
+            improved_text = ai_service.improve_summary(current_text, job_title)
+        elif improvement_type == 'skill':
+            level = data.get('level', 'Intermedio')
+            improved_text = ai_service.improve_skill_description(job_title, level)
+        else:
+            improved_text = ai_service.improve_description(current_text, job_title)
         
         # Increment counter
         cache.set(cache_key, current_count + 1, timeout=86400) # 24 hours timeout
         
-        # Create a form instance with the new data to render the widget correctly
-        from .forms import ExperienceForm
-        form = ExperienceForm(initial={'description': improved_text})
-        
-        return HttpResponse(form['description'])
+        # Return textarea with improved text
+        return HttpResponse(
+            f'<textarea id="{field_id}" name="{field_name}" class="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-slate-300 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50" rows="4">{improved_text}</textarea>'
+        )
 
     except Exception as e:
-        return HttpResponse(f"Error: {str(e)}", status=500)
+        import logging
+        logging.error(f"AI Error: {str(e)}")
+        return HttpResponse(
+            f'<textarea id="id_description" class="w-full px-4 py-2 rounded-lg bg-slate-700 border border-red-600 text-red-400">Error: {str(e)}</textarea>',
+            status=500
+        )

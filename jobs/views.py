@@ -4,6 +4,9 @@ from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.core.management import call_command
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Q
 
 @staff_member_required
 def trigger_scraping(request):
@@ -104,18 +107,43 @@ def job_list(request):
 
     # Filter by remote
     is_remote = request.GET.get('remote')
-    if is_remote == 'on':
+    if is_remote == 'true' or is_remote == 'on':
         jobs = jobs.filter(remote=True)
     
-    # Filter by salary (basic implementation, assumes salary_min is populated or we filter by text range if needed)
-    # For now, let's just filter if we had the field populated. 
-    # Since we are scraping text, precise numeric filtering is hard without parsing.
-    # We will skip numeric filtering for now unless we parsed it.
+    # Filter by last 24 hours
+    hours = request.GET.get('hours')
+    if hours:
+        try:
+            hours_int = int(hours)
+            time_cutoff = timezone.now() - timedelta(hours=hours_int)
+            # Use posted_at if available, otherwise use created_at
+            jobs = jobs.filter(Q(posted_at__gte=time_cutoff.date()) | Q(created_at__gte=time_cutoff))
+        except (ValueError, TypeError):
+            pass
+    
+    # Filter by experience level
+    level = request.GET.get('level')
+    if level == 'junior':
+        jobs = jobs.filter(Q(title__icontains='junior') | Q(title__icontains='entry') | 
+                          Q(title__icontains='trainee') | Q(description__icontains='junior') |
+                          Q(description__icontains='entry level'))
+    elif level == 'senior':
+        jobs = jobs.filter(Q(title__icontains='senior') | Q(title__icontains='lead') | 
+                          Q(title__icontains='principal') | Q(title__icontains='manager') |
+                          Q(description__icontains='senior'))
+    
+    # Filter by skill
+    skill = request.GET.get('skill')
+    if skill:
+        jobs = jobs.filter(Q(title__icontains=skill) | Q(description__icontains=skill))
 
     # Ordering
     sort_by = request.GET.get('sort', '-posted_at')
     if sort_by in ['posted_at', '-posted_at', 'salary', '-salary']:
         jobs = jobs.order_by(sort_by)
+    else:
+        # Default ordering by created_at if posted_at is null
+        jobs = jobs.order_by('-created_at')
 
     # Pagination
     paginator = Paginator(jobs, 10) # 10 jobs per page
@@ -129,6 +157,9 @@ def job_list(request):
         'selected_source': source,
         'is_remote': is_remote,
         'sort_by': sort_by,
+        'level': level,
+        'skill': skill,
+        'hours': hours,
         'sources': JobOffer.objects.values_list('source', flat=True).distinct().order_by('source')
     }
     return render(request, 'jobs/job_list.html', context)

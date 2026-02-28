@@ -1,5 +1,5 @@
 
-import google.generativeai as genai
+import google.genai as genai
 from django.conf import settings
 import logging
 import json
@@ -22,22 +22,26 @@ class AIService:
         api_key = getattr(settings, 'GEMINI_API_KEY', None)
         if not api_key:
             logger.warning("GEMINI_API_KEY is not set.")
-            self.model = None
+            self.client = None
+            self.initialized = True
             return
 
         try:
-            genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
+            # Nueva API de google.genai
+            self.client = genai.Client(api_key=api_key)
+            self.model_name = 'gemini-2.5-flash-lite'
             self.initialized = True
+            logger.info("Gemini AI initialized successfully")
         except Exception as e:
             logger.error(f"Failed to configure Gemini AI: {e}")
-            self.model = None
+            self.client = None
+            self.initialized = True
 
     def improve_description(self, text: str, job_title: str) -> str:
         """
         Rewrites a job description to be more professional and impact-oriented.
         """
-        if not self.model:
+        if not self.client:
             return "Error: Servicio de IA no configurado."
 
         if not text:
@@ -64,17 +68,122 @@ class AIService:
         """
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             return response.text.strip()
         except Exception as e:
             logger.error(f"AI Generation Error: {e}")
             return f"Error mejorando texto. Intente más tarde."
 
+    def improve_education_description(self, text: str, degree: str, institution: str) -> str:
+        """
+        Improves education/training description to highlight achievements and skills gained.
+        """
+        if not self.client:
+            return "Error: Servicio de IA no configurado."
+
+        if not text:
+            return ""
+            
+        if len(text) < 10:
+            return "Descripción muy corta para mejorar."
+
+        prompt = f"""
+        Actúa como un experto redactor de CVs. Mejora la siguiente descripción de formación académica para el grado "{degree}" en "{institution}".
+        
+        Reglas:
+        1. Destaca LOGROS académicos y PROYECTOS relevantes.
+        2. Menciona HABILIDADES adquiridas si es relevante.
+        3. Usa TERCERA PERSONA O PASIVA si es necesario.
+        4. Sé conciso (menos de 100 palabras).
+        5. Mantén un tono académico pero profesional.
+        
+        Responde SOLO con el texto mejorado en español.
+
+        Descripción Original:
+        {text}
+        """
+
+        try:
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
+            return response.text.strip()
+        except Exception as e:
+            logger.error(f"AI Generation Error: {e}")
+            return f"Error mejorando texto. Intente más tarde."
+
+    def improve_summary(self, text: str, job_title: str = "Profesional") -> str:
+        """
+        Improves professional summary to be concise and impactful.
+        """
+        if not self.client:
+            return "Error: Servicio de IA no configurado."
+
+        if not text:
+            return ""
+            
+        if len(text) < 10:
+            return "Resumen muy corto para mejorar."
+
+        prompt = f"""
+        Actúa como un experto redactor de CVs. Mejora el siguiente RESUMEN PROFESIONAL para un "{job_title}".
+        
+        Reglas:
+        1. MÁXIMO 3-4 líneas (50-80 palabras).
+        2. Destaca: EXPERIENCIA + FORTALEZAS + VALOR ÚNICO.
+        3. Usa PRIMERA PERSONA y verbos activos.
+        4. Sé específico, no genérico.
+        5. Oriéntalo a resultados e impacto.
+        
+        Responde SOLO con el resumen mejorado en español.
+
+        Resumen Original:
+        {text}
+        """
+
+        try:
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
+            return response.text.strip()
+        except Exception as e:
+            logger.error(f"AI Generation Error: {e}")
+            return f"Error mejorando texto. Intente más tarde."
+
+    def improve_skill_description(self, skill_name: str, level: str) -> str:
+        """
+        Generates a brief description of how to demonstrate a skill.
+        """
+        if not self.client:
+            return "Error: Servicio de IA no configurado."
+
+        prompt = f"""
+        Actúa como un experto en recursos humanos. Crea UNA LÍNEA corta (máximo 15 palabras) que describa cómo demostrar competencia en "{skill_name}" a nivel "{level}".
+        
+        Usa lenguaje profesional y orientado a resultados.
+        Responde SOLO con esa descripción.
+        """
+
+        try:
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
+            return response.text.strip()
+        except Exception as e:
+            logger.error(f"AI Generation Error: {e}")
+            return ""
+
     def analyze_resume(self, resume_text: str) -> dict:
         """
         Analyzes the full resume text and provides feedback.
         """
-        if not self.model:
+        if not self.client:
             return {"error": "Servicio de IA no configurado."}
 
         prompt = f"""
@@ -91,7 +200,10 @@ class AIService:
         """
         
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             text_response = response.text.strip()
             # Clean possible markdown code blocks
             if "```json" in text_response:

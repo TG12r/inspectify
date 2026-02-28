@@ -20,6 +20,18 @@
                 placeholder="Buscar empleos, normas o documentos técnicos...">
         </form>
 
+        <!-- Quick Filters -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <a href="{% url 'job_list' %}?remote=true" 
+               class="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 hover:border-slate-600 hover:text-white transition-all whitespace-nowrap">
+                🌍 Remote
+            </a>
+            <a href="{% url 'job_list' %}?hours=24" 
+               class="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 hover:border-slate-600 hover:text-white transition-all whitespace-nowrap">
+                🔥 Últimas 24h
+            </a>
+        </div>
+
         <!-- Section Title -->
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold text-white">Ofertas Recomendadas</h2>
@@ -393,5 +405,7 @@ function switchPostsTab(tabName) {
     document.getElementById('posts-tab-' + tabName).classList.add('border-purple-500', 'text-white');
     document.getElementById('posts-tab-' + tabName).classList.remove('border-transparent', 'text-slate-400');
 }
+
+
 </script>
 {% endblock %}
