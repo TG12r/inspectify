@@ -8,9 +8,20 @@ from jobs.models import JobOffer
 
 
 def community_list(request):
+    query = request.GET.get('q', '')
+    
     communities = Community.objects.annotate(
         total_members=Count('memberships')
-    ).order_by('-total_members')
+    )
+    
+    if query:
+        from django.db.models import Q
+        communities = communities.filter(
+            Q(name__icontains=query) | 
+            Q(description__icontains=query)
+        )
+    
+    communities = communities.order_by('-total_members')
 
     user_memberships = set()
     if request.user.is_authenticated:
@@ -21,6 +32,7 @@ def community_list(request):
     return render(request, 'communities/list.html', {
         'communities': communities,
         'user_memberships': user_memberships,
+        'query': query,
     })
 
 

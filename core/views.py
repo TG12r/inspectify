@@ -79,9 +79,10 @@ def logout_view(request):
     logout(request)
     return redirect('dashboard')
 
-from django.db.models import Q
+from django.db.models import Q, Count
 from jobs.models import JobOffer
 from repository.models import Document
+from communities.models import Community
 from .models import UserProfile
 
 def search(request):
@@ -90,6 +91,7 @@ def search(request):
     jobs = []
     documents = []
     profiles = []
+    communities = []
     
     if query:
         # Search Jobs
@@ -116,11 +118,18 @@ def search(request):
             Q(user__username__icontains=query)
         ).select_related('user').distinct()[:5]
         
+        # Search Communities
+        communities = Community.objects.filter(
+            Q(name__icontains=query) | 
+            Q(description__icontains=query)
+        ).annotate(total_members=Count('memberships')).distinct()[:5]
+        
     return render(request, 'core/search_results.html', {
         'query': query,
         'jobs': jobs,
         'documents': documents,
         'profiles': profiles,
-        'total_results': len(jobs) + len(documents) + len(profiles)
+        'communities': communities,
+        'total_results': len(jobs) + len(documents) + len(profiles) + len(communities)
     })
 
