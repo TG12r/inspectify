@@ -44,6 +44,11 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 
     {% block extra_head %}{% endblock %}
 </head>
@@ -94,6 +99,19 @@
                 </svg>
                 Repositorio Técnico
             </a>
+
+            {% if user.is_authenticated %}
+            {% if user.is_staff or user.can_upload_repository_documents %}
+            <a href="{% url 'repository_upload_document' %}"
+                class="group flex items-center px-3 py-2 pl-11 text-sm font-medium rounded-md {% if request.resolver_match.url_name == 'repository_upload_document' %}bg-slate-800 text-white{% else %}text-slate-400 hover:text-white hover:bg-slate-800{% endif %} transition-colors">
+                <svg class="mr-3 h-4 w-4 {% if request.resolver_match.url_name == 'repository_upload_document' %}text-blue-500{% else %}text-slate-400 group-hover:text-slate-300{% endif %}"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Subir documento
+            </a>
+            {% endif %}
+            {% endif %}
 
             <a href="{% url 'community_list' %}"
                 class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {% if 'community' in request.resolver_match.url_name %}bg-slate-800 text-white{% else %}text-slate-400 hover:text-white hover:bg-slate-800{% endif %} transition-colors">

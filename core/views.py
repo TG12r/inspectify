@@ -87,49 +87,74 @@ from .models import UserProfile
 
 def search(request):
     query = request.GET.get('q', '')
+    result_type = request.GET.get('type', '')  # jobs, documents, profiles, communities
     
     jobs = []
     documents = []
     profiles = []
     communities = []
+    jobs_total = 0
+    documents_total = 0
+    profiles_total = 0
+    communities_total = 0
     
     if query:
+        # Determine limit based on whether we're showing all of one type
+        limit = None if result_type else 5
+        
         # Search Jobs
-        jobs = JobOffer.objects.filter(
-            Q(title__icontains=query) | 
-            Q(company__icontains=query) | 
-            Q(description__icontains=query),
-            is_active=True
-        ).distinct()[:5] # Limit to 5 for now
+        if not result_type or result_type == 'jobs':
+            jobs_query = JobOffer.objects.filter(
+                Q(title__icontains=query) | 
+                Q(company__icontains=query) | 
+                Q(description__icontains=query),
+                is_active=True
+            ).distinct()
+            jobs_total = jobs_query.count()
+            jobs = list(jobs_query[:limit] if limit else jobs_query[:50])
         
         # Search Documents
-        documents = Document.objects.filter(
-            Q(title__icontains=query) | 
-            Q(description__icontains=query),
-            is_public=True
-        ).distinct()[:5]
+        if not result_type or result_type == 'documents':
+            documents_query = Document.objects.filter(
+                Q(title__icontains=query) | 
+                Q(description__icontains=query),
+                is_public=True
+            ).distinct()
+            documents_total = documents_query.count()
+            documents = list(documents_query[:limit] if limit else documents_query[:50])
         
         # Search Profiles
-        profiles = UserProfile.objects.filter(
-            Q(title__icontains=query) | 
-            Q(bio__icontains=query) |
-            Q(user__first_name__icontains=query) |
-            Q(user__last_name__icontains=query) |
-            Q(user__username__icontains=query)
-        ).select_related('user').distinct()[:5]
+        if not result_type or result_type == 'profiles':
+            profiles_query = UserProfile.objects.filter(
+                Q(title__icontains=query) | 
+                Q(bio__icontains=query) |
+                Q(user__first_name__icontains=query) |
+                Q(user__last_name__icontains=query) |
+                Q(user__username__icontains=query)
+            ).select_related('user').distinct()
+            profiles_total = profiles_query.count()
+            profiles = list(profiles_query[:limit] if limit else profiles_query[:50])
         
         # Search Communities
-        communities = Community.objects.filter(
-            Q(name__icontains=query) | 
-            Q(description__icontains=query)
-        ).annotate(total_members=Count('memberships')).distinct()[:5]
+        if not result_type or result_type == 'communities':
+            communities_query = Community.objects.filter(
+                Q(name__icontains=query) | 
+                Q(description__icontains=query)
+            ).annotate(total_members=Count('memberships')).distinct()
+            communities_total = communities_query.count()
+            communities = list(communities_query[:limit] if limit else communities_query[:50])
         
     return render(request, 'core/search_results.html', {
         'query': query,
+        'result_type': result_type,
         'jobs': jobs,
         'documents': documents,
         'profiles': profiles,
         'communities': communities,
+        'jobs_total': jobs_total,
+        'documents_total': documents_total,
+        'profiles_total': profiles_total,
+        'communities_total': communities_total,
         'total_results': len(jobs) + len(documents) + len(profiles) + len(communities)
     })
 

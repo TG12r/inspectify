@@ -5,15 +5,21 @@ class User(AbstractUser):
     class Roles(models.TextChoices):
         ADMIN = "ADMIN", "Administrador"
         SEEKER = "SEEKER", "Profesional"
-        RECRUITER = "RECRUITER", "Reclutador"
+        EDITOR = "RECRUITER", "Editor"
 
     role = models.CharField(max_length=50, choices=Roles.choices, default="SEEKER")
 
+    def is_editor(self):
+        return self.role == self.Roles.EDITOR
+
     def is_recruiter(self):
-        return self.role == self.Roles.RECRUITER
+        return self.is_editor()
 
     def is_seeker(self):
         return self.role == self.Roles.SEEKER
+
+    def can_upload_repository_documents(self):
+        return self.role in {self.Roles.ADMIN, self.Roles.EDITOR}
 
     def save(self, *args, **kwargs):
         if self.role == self.Roles.ADMIN:
