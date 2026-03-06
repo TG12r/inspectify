@@ -1,3 +1,5 @@
+# Detectar HTTPS detrás de proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Seguridad para producción
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
