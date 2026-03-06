@@ -1,3 +1,7 @@
+# Seguridad para producción
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 """
 Django settings for inspectify project.
 
