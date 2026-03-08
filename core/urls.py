@@ -1,8 +1,12 @@
 from django.urls import path
-from . import views, views_profile, views_connection
+from . import views, views_profile, views_connection, views_landing, views_faq
+
+from django.contrib.auth.decorators import login_required
 
 urlpatterns = [
-    path('', views.index, name='dashboard'),
+    path('', views_landing.landing, name='landing'),
+    path('faq/', views_faq.faq, name='faq'),
+    path('dashboard/', login_required(views.index), name='dashboard'),
     path('search/', views.search, name='global_search'),
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),

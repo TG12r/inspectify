@@ -16,3 +16,7 @@ staticfiles/
 # IDEs
 .vscode/
 .idea/
+
+gunicorn.ctl
+inspectify/settings.py
+.env.example

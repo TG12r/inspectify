@@ -74,10 +74,13 @@ def login_view(request):
             
     return render(request, 'core/login.html', {'form': form})
 
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('dashboard')
+    return redirect('landing')
 
 from django.db.models import Q, Count
 from jobs.models import JobOffer

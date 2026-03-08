@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Preguntas Frecuentes sobre Inspectoker: Industria Petrolera y Energética{% endblock %}
+{% block extra_head %}
+<meta name="description" content="Resuelve tus dudas sobre Inspectoker: registro, privacidad, empleos y soporte en la red profesional líder para la industria petrolera y energética.">
+<meta property="og:title" content="Preguntas Frecuentes | Inspectoker">
+<meta property="og:description" content="Resuelve tus dudas sobre Inspectoker: registro, privacidad, empleos y soporte en la red profesional líder para la industria petrolera y energética.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://inspectoker.com/faq/">
+<meta property="og:image" content="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80">
+<link rel="canonical" href="https://inspectoker.com/faq/">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "¿Qué es Inspectoker?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Inspectoker es una red profesional especializada en conectar talento con empresas del sector petróleo, gas y energía. Aquí puedes encontrar empleos, crear tu perfil y acceder a oportunidades exclusivas."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "¿Cómo me registro?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Haz clic en 'Registrarse' en la barra superior o en la landing page, completa tus datos y sigue los pasos para crear tu perfil profesional."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "¿Qué tipo de empleos puedo encontrar?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ofrecemos empleos en ingeniería, supervisión de campo, mantenimiento, seguridad, geología, análisis de producción y consultoría energética, tanto remotos como presenciales."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "¿Cómo contacto al soporte?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Puedes escribirnos a info@inspectoker.com y nuestro equipo te responderá lo antes posible."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "¿Mi información es privada?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Tu perfil profesional en Inspectoker es visible para empresas y otros usuarios que tengan el enlace a tu perfil, incluso si no han iniciado sesión. Esto permite que más oportunidades laborales lleguen a ti y que las empresas puedan encontrarte fácilmente. Actualmente, no existe una opción para hacer tu perfil completamente privado, pero tu información nunca será compartida fuera de la plataforma ni utilizada con fines ajenos a la red profesional."
+            }
+        }
+    ]
+}
+</script>
+{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto py-16 px-4 md:px-0">
+    <h1 class="text-4xl font-extrabold gradient-text mb-10 text-center">Preguntas Frecuentes</h1>
+    <p class="text-lg text-slate-300 text-center mb-8">¿Tienes otra duda? <a href="mailto:info@inspectoker.com" class="text-blue-400 underline">Contáctanos</a> o vuelve a la <a href="/" class="text-blue-400 underline">página principal</a>.</p>
+    <div class="space-y-4" itemscope itemtype="https://schema.org/FAQPage">
+        <div x-data="{ open: true }" class="glass-panel rounded-xl p-6 shadow-lg" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <button @click="open = !open" class="flex items-center w-full text-left gap-3 focus:outline-none">
+                <img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/information-circle.svg" class="w-6 h-6 text-blue-400">
+                <span class="text-xl font-semibold text-blue-300 flex-1" itemprop="name">¿Qué es Inspectoker?</span>
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-blue-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div x-show="open" x-transition class="mt-3 text-slate-300" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><span itemprop="text">Inspectoker es una red profesional especializada en conectar talento con empresas del sector petróleo, gas y energía. Aquí puedes encontrar empleos, crear tu perfil y acceder a oportunidades exclusivas.</span></div>
+        </div>
+        <div x-data="{ open: false }" class="glass-panel rounded-xl p-6 shadow-lg" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <button @click="open = !open" class="flex items-center w-full text-left gap-3 focus:outline-none">
+                <img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/user-plus.svg" class="w-6 h-6 text-blue-400">
+                <span class="text-xl font-semibold text-blue-300 flex-1" itemprop="name">¿Cómo me registro?</span>
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-blue-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div x-show="open" x-transition class="mt-3 text-slate-300" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><span itemprop="text">Haz clic en "Registrarse" en la barra superior o en la landing page, completa tus datos y sigue los pasos para crear tu perfil profesional.</span></div>
+        </div>
+        <div x-data="{ open: false }" class="glass-panel rounded-xl p-6 shadow-lg" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <button @click="open = !open" class="flex items-center w-full text-left gap-3 focus:outline-none">
+                <img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/briefcase.svg" class="w-6 h-6 text-blue-400">
+                <span class="text-xl font-semibold text-blue-300 flex-1" itemprop="name">¿Qué tipo de empleos puedo encontrar?</span>
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-blue-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div x-show="open" x-transition class="mt-3 text-slate-300" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><span itemprop="text">Ofrecemos empleos en ingeniería, supervisión de campo, mantenimiento, seguridad, geología, análisis de producción y consultoría energética, tanto remotos como presenciales.</span></div>
+        </div>
+        <div x-data="{ open: false }" class="glass-panel rounded-xl p-6 shadow-lg" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <button @click="open = !open" class="flex items-center w-full text-left gap-3 focus:outline-none">
+                <img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/envelope.svg" class="w-6 h-6 text-blue-400">
+                <span class="text-xl font-semibold text-blue-300 flex-1" itemprop="name">¿Cómo contacto al soporte?</span>
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-blue-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div x-show="open" x-transition class="mt-3 text-slate-300" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><span itemprop="text">Puedes escribirnos a <a href="mailto:info@inspectoker.com" class="text-blue-400 underline">info@inspectoker.com</a> y nuestro equipo te responderá lo antes posible.</span></div>
+        </div>
+        <div x-data="{ open: false }" class="glass-panel rounded-xl p-6 shadow-lg" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+            <button @click="open = !open" class="flex items-center w-full text-left gap-3 focus:outline-none">
+                <img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/shield-check.svg" class="w-6 h-6 text-blue-400">
+                <span class="text-xl font-semibold text-blue-300 flex-1" itemprop="name">¿Mi información es privada?</span>
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-blue-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div x-show="open" x-transition class="mt-3 text-slate-300" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer"><span itemprop="text">Tu perfil profesional en Inspectoker es visible para empresas y otros usuarios que tengan el enlace a tu perfil, incluso si no han iniciado sesión. Esto permite que más oportunidades laborales lleguen a ti y que las empresas puedan encontrarte fácilmente. Actualmente, no existe una opción para hacer tu perfil completamente privado, pero tu información nunca será compartida fuera de la plataforma ni utilizada con fines ajenos a la red profesional.</span></div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% endblock %}

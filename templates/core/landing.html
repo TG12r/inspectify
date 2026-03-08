@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<title>Talento para la Industria Petrolera | Inspectoker</title>
+<meta name="description" content="Conecta con las mejores oportunidades laborales en el sector petróleo y energía. Encuentra empleos, crea tu perfil y accede a una red profesional especializada.">
+<meta property="og:title" content="Talento para la Industria Petrolera | Inspectoker">
+<meta property="og:description" content="Conecta con las mejores oportunidades laborales en el sector petróleo y energía. Encuentra empleos, crea tu perfil y accede a una red profesional especializada.">
+<meta property="og:image" content="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://inspectoker.com/">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Inspectoker",
+    "url": "https://inspectoker.com/",
+    "description": "Red profesional líder para la industria petrolera y energética. Encuentra empleos, crea tu perfil y accede a oportunidades exclusivas en Oil & Gas y energía.",
+    "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://inspectoker.com/buscar/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+    }
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Inspectoker",
+    "url": "https://inspectoker.com/",
+    "logo": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+    "contactPoint": [{
+        "@type": "ContactPoint",
+        "email": "info@inspectoker.com",
+        "contactType": "customer support",
+        "areaServed": "Worldwide",
+        "availableLanguage": ["Spanish", "English"]
+    }],
+    "sameAs": [
+        "https://www.linkedin.com/company/inspectoker/"
+    ]
+}
+</script>
+<style>
+    /* Oculta y elimina el espacio del sidebar SOLO en la landing */
+    aside { display: none !important; width: 0 !important; min-width: 0 !important; }
+    .md\\:hidden { display: none !important; }
+    body { display: block !important; min-height: 100vh !important; overflow-x: hidden !important; overflow-y: auto !important; }
+    main.flex-1, main[role="main"] {
+        padding: 0 !important;
+        margin: 0 !important;
+        min-height: 0 !important;
+        background: none !important;
+        overflow-y: visible !important;
+    }
+    .flex-1.flex.flex-col.overflow-hidden.bg-slate-950 {
+        background: none !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        flex: none !important;
+        display: block !important;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<!-- Navbar solo para landing -->
+<nav class="w-full bg-slate-900 border-b border-slate-800 py-3 px-4 md:px-12 flex items-center justify-between z-50">
+    <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-2">
+            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-2xl font-bold tracking-tight text-white">Inspectify</span>
+        </a>
+    </div>
+    <div class="flex items-center gap-6">
+        <a href="{% url 'job_list' %}" class="text-slate-300 hover:text-white font-medium transition">Empleos</a>
+        <a href="{% url 'repository_index' %}" class="text-slate-300 hover:text-white font-medium transition">Repositorio</a>
+        <a href="{% url 'community_list' %}" class="text-slate-300 hover:text-white font-medium transition">Comunidades</a>
+        <a href="{% url 'faq' %}" class="text-slate-300 hover:text-white font-medium transition">FAQ</a>
+    </div>
+    <div class="flex items-center gap-4">
+        {% if user.is_authenticated %}
+            <a href="{% url 'public_profile' user.profile.slug %}" class="flex items-center gap-2 text-slate-200 hover:text-blue-400 font-medium transition">
+                {% if user.profile.avatar %}
+                    <img class="h-8 w-8 rounded-full bg-slate-700 object-cover" src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
+                {% else %}
+                    <img class="h-8 w-8 rounded-full bg-slate-700" src="https://ui-avatars.com/api/?name={{ user.first_name|default:user.username }}&background=random" alt="User Avatar">
+                {% endif %}
+                <span class="hidden md:inline">Mi Perfil</span>
+            </a>
+            <a href="{% url 'logout' %}" class="text-slate-400 hover:text-red-400 font-medium transition" title="Cerrar Sesión">Salir</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg border border-slate-700 transition-colors">Iniciar Sesión</a>
+            <a href="{% url 'register' %}" class="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">Registrarse</a>
+        {% endif %}
+    </div>
+</nav>
+<section class="relative bg-slate-950">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between py-16 px-4 md:px-12 gap-10">
+        <div class="flex-1 flex flex-col items-start">
+            <h1 class="text-4xl md:text-5xl font-extrabold gradient-text mb-4 leading-tight">Impulsa tu carrera en la industria petrolera</h1>
+            <p class="text-lg md:text-xl text-slate-300 mb-6 max-w-xl">Conéctate con empresas líderes, accede a empleos exclusivos y forma parte de la red profesional más especializada en Oil & Gas y energía.</p>
+            <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                <a href="{% url 'register' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg transition">Regístrate gratis</a>
+                <a href="{% url 'login' %}" class="bg-slate-800 hover:bg-slate-700 text-blue-300 font-semibold py-3 px-8 rounded-lg text-lg border border-blue-700 transition">Ya tengo cuenta</a>
+            </div>
+            <ul class="flex flex-wrap gap-4 mt-2">
+                <li class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-sm"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/briefcase.svg" alt="Empleos" class="w-5 h-5"> Empleos en petróleo</li>
+                <li class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-sm"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/users.svg" alt="Red profesional" class="w-5 h-5"> Red profesional</li>
+                <li class="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-sm"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/star.svg" alt="Talento verificado" class="w-5 h-5"> Talento verificado</li>
+            </ul>
+        </div>
+        <div class="flex-1 flex justify-center">
+            <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Industria petrolera, trabajadores y equipos de Oil & Gas" class="rounded-2xl shadow-2xl w-full max-w-md object-cover border-4 border-slate-900" loading="lazy">
+        </div>
+    </div>
+</section>
+
+<section class="bg-slate-900 py-16 px-4 md:px-0">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
+        <div class="glass-panel p-8 rounded-2xl flex flex-col items-center text-center">
+            <img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/rocket-launch.svg" alt="Crecimiento" class="w-10 h-10 mb-3">
+            <h3 class="text-xl font-bold text-blue-300 mb-2">Crecimiento profesional</h3>
+            <p class="text-slate-300">Accede a oportunidades de desarrollo y formación continua en el sector energético.</p>
+        </div>
+        <div class="glass-panel p-8 rounded-2xl flex flex-col items-center text-center">
+            <img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/handshake.svg" alt="Conexiones" class="w-10 h-10 mb-3">
+            <h3 class="text-xl font-bold text-blue-300 mb-2">Conexiones reales</h3>
+            <p class="text-slate-300">Conecta con empresas, reclutadores y colegas de la industria petrolera y energética.</p>
+        </div>
+        <div class="glass-panel p-8 rounded-2xl flex flex-col items-center text-center">
+            <img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/shield-check.svg" alt="Talento verificado" class="w-10 h-10 mb-3">
+            <h3 class="text-xl font-bold text-blue-300 mb-2">Talento verificado</h3>
+            <p class="text-slate-300">Solo perfiles validados y con experiencia comprobada en Oil & Gas y energía.</p>
+        </div>
+    </div>
+</section>
+
+<section class="bg-slate-950 py-16 px-4 md:px-0">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-10 items-center">
+        <div class="flex-1">
+            <h2 class="text-3xl font-bold text-blue-300 mb-4">¿Cómo funciona?</h2>
+            <ol class="list-decimal list-inside text-slate-300 space-y-2 mb-6">
+                <li>Regístrate y crea tu perfil profesional</li>
+                <li>Destaca tu experiencia y habilidades en el sector</li>
+                <li>Las empresas revisan tu perfil y te contactan</li>
+                <li>Accede a procesos de selección exclusivos</li>
+                <li>Consigue empleos remotos, híbridos o presenciales</li>
+            </ol>
+            <a href="{% url 'register' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg transition">Comienza ahora</a>
+        </div>
+        <div class="flex-1 flex justify-center">
+            <img src="https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80" alt="Equipo petrolero, maquinaria y trabajadores" class="rounded-2xl shadow-2xl w-full max-w-md object-cover border-4 border-slate-900" loading="lazy">
+        </div>
+    </div>
+</section>
+
+<section class="bg-slate-900 py-16 px-4 md:px-0">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold text-blue-300 mb-8 text-center">Perfiles más buscados</h2>
+        <div class="flex flex-wrap justify-center gap-4">
+            <span class="bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-base flex items-center gap-2"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/wrench-screwdriver.svg" class="w-5 h-5"> Ingenieros de Petróleo</span>
+            <span class="bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-base flex items-center gap-2"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/bolt.svg" class="w-5 h-5"> Técnicos de Mantenimiento</span>
+            <span class="bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-base flex items-center gap-2"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/eye.svg" class="w-5 h-5"> Supervisores de Campo</span>
+            <span class="bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-base flex items-center gap-2"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/shield-exclamation.svg" class="w-5 h-5"> Especialistas en Seguridad</span>
+            <span class="bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-base flex items-center gap-2"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/beaker.svg" class="w-5 h-5"> Geólogos</span>
+            <span class="bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-base flex items-center gap-2"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/chart-bar.svg" class="w-5 h-5"> Analistas de Producción</span>
+            <span class="bg-slate-800 px-4 py-2 rounded-full text-slate-200 text-base flex items-center gap-2"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/user-group.svg" class="w-5 h-5"> Consultores Energéticos</span>
+        </div>
+    </div>
+</section>
+
+<section class="bg-slate-950 py-16 px-4 md:px-0">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-10 items-center">
+        <div class="flex-1 flex flex-col gap-4">
+            <h2 class="text-3xl font-bold text-blue-300 mb-2">¿Tienes preguntas?</h2>
+            <p class="text-slate-300 mb-2">Nuestro equipo está listo para ayudarte. Escríbenos a <a href="mailto:info@inspectoker.com" class="text-blue-400 underline">info@inspectoker.com</a> o revisa nuestras <a href="#" class="text-blue-400 underline">preguntas frecuentes</a>.</p>
+            <div class="flex gap-4 mt-2">
+                <a href="mailto:info@inspectoker.com" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/envelope.svg" class="w-5 h-5"> Contáctanos</a>
+                <a href="{% url 'faq' %}" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-blue-300 font-semibold py-2 px-6 rounded-lg border border-blue-700 transition"><img src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/solid/question-mark-circle.svg" class="w-5 h-5"> FAQ</a>
+            </div>
+        </div>
+        <div class="flex-1 flex justify-center">
+            <img src="https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=600&q=80" alt="Soporte, atención al cliente en Inspectoker" class="rounded-2xl shadow-2xl w-full max-w-md object-cover border-4 border-slate-900" loading="lazy">
+        </div>
+    </div>
+</section>
+
+<footer class="w-full text-center mt-16 mb-4 text-slate-500">
+        &copy; 2026 Inspectoker. Todos los derechos reservados.
+</footer>
+{% endblock %}
