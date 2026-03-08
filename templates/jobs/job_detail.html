@@ -16,6 +16,11 @@
     </a>
 
     <div class="glass-panel p-8 rounded-xl relative overflow-hidden">
+        {% if user.is_authenticated and (user.is_superuser or user.is_staff or (job.author == user and user.is_editor)) %}
+        <div class="absolute top-4 right-4">
+            <a href="{% url 'job_edit' job.pk %}" class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs font-semibold">Editar</a>
+        </div>
+        {% endif %}
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-start gap-6 border-b border-slate-700 pb-8 mb-8">
             <div>

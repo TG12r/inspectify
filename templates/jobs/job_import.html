@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto py-12">
+  <div class="glass-panel p-8 rounded-2xl shadow-xl">
+    <div class="flex flex-col items-center mb-6">
+      <div class="bg-blue-900 rounded-full p-4 mb-3">
+        <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17l4 4 4-4m-4-5v9" />
+          <rect width="20" height="12" x="2" y="4" rx="2" fill="#1e293b" stroke="#3b82f6" stroke-width="2" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2">Importar empleos desde Excel</h2>
+      <p class="text-slate-400 text-sm text-center">Carga empleos en lote usando un archivo Excel (.xlsx) con el formato adecuado.</p>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      <div class="mb-2">{{ form.file.label_tag }}<span class="text-red-500">*</span></div>
+      <div>{{ form.file }}</div>
+      {% if form.file.help_text %}<p class="text-xs text-slate-400 mt-1">{{ form.file.help_text }}</p>{% endif %}
+      {% for error in form.file.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      <div class="flex gap-4 pt-4 justify-center">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-lg font-semibold transition-colors">Importar</button>
+        <a href="{% url 'job_import_format' %}" class="bg-slate-700 hover:bg-slate-800 text-white px-8 py-2 rounded-lg font-semibold transition-colors">Descargar Formato</a>
+        <a href="{% url 'job_list' %}" class="text-slate-400 hover:text-white px-8 py-2 rounded-lg font-semibold transition-colors">Cancelar</a>
+      </div>
+    </form>
+    <div class="mt-8 bg-slate-800/60 rounded-lg p-4 text-slate-300 text-sm">
+      <div class="mb-2 font-semibold text-blue-300">Instrucciones:</div>
+      <ul class="list-disc pl-6 space-y-1">
+        <li>El archivo debe ser <b>.xlsx</b> y tener la primera fila con los siguientes encabezados:</li>
+        <li><span class="font-mono text-xs">title, company, location, description, salary_range, url, apply_link, source, posted_at, is_active</span></li>
+        <li>Puedes dejar en blanco los campos opcionales.</li>
+        <li>La columna <b>is_active</b> debe ser <b>1</b> (activo) o <b>0</b> (inactivo).</li>
+        <li>Descarga el formato de ejemplo para evitar errores.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

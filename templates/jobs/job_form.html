@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto py-10">
+  <div class="glass-panel p-8 rounded-xl">
+    <h2 class="text-2xl font-bold mb-8 text-white text-center">{{ job|default_if_none:'Nueva' }} Oferta de Trabajo</h2>
+    <div class="flex justify-end mb-6">
+      <a href="{% url 'job_import' %}" class="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-lg font-medium transition-colors">Importar desde Excel</a>
+      <a href="{% url 'job_import_format' %}" class="ml-2 bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded-lg font-medium transition-colors">Descargar Formato</a>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-5">
+          {% for field in form.visible_fields %}
+            {% if forloop.counter0 < 7 %}
+              <div>
+                <label for="{{ field.id_for_label }}" class="block text-slate-200 font-medium mb-1">{{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}</label>
+                {{ field }}
+                {% if field.help_text %}
+                  <p class="text-xs text-slate-400 mt-1">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                  <p class="text-xs text-red-500 mt-1">{{ error }}</p>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <div class="space-y-5">
+          {% for field in form.visible_fields %}
+            {% if forloop.counter0 >= 7 %}
+              <div>
+                <label for="{{ field.id_for_label }}" class="block text-slate-200 font-medium mb-1">{{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}</label>
+                {{ field }}
+                {% if field.help_text %}
+                  <p class="text-xs text-slate-400 mt-1">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                  <p class="text-xs text-red-500 mt-1">{{ error }}</p>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="flex gap-4 pt-8 justify-center">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-lg font-semibold transition-colors">Guardar</button>
+        <a href="{% url 'job_list' %}" class="text-slate-400 hover:text-white px-8 py-2 rounded-lg font-semibold transition-colors">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+<style>
+  input, select, textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 0.5rem;
+    color: #fff;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+    transition: border 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: #3b82f6;
+    outline: none;
+  }
+  input[type=checkbox], input[type=radio] {
+    width: auto;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.5rem;
+  }
+</style>
+{% endblock %}

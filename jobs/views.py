@@ -1,5 +1,119 @@
+import io
+import openpyxl
+from django.http import HttpResponse
+from .forms_import import JobImportForm
+# Vista para importar empleos desde Excel
+from django.contrib.auth.decorators import login_required
+@login_required
+def job_import(request):
+    if not (request.user.is_superuser or request.user.is_staff or request.user.is_editor()):
+        return redirect('job_list')
+    if request.method == 'POST':
+        form = JobImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = form.cleaned_data['file']
+            wb = openpyxl.load_workbook(file)
+            ws = wb.active
+            created = 0
+            for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True)):
+                title, company, location, description, salary_range, url, apply_link, source, posted_at, is_active = row[:10]
+                if not title or not company or not url:
+                    continue
+                from .models import JobOffer
+                JobOffer.objects.create(
+                    title=title,
+                    company=company,
+                    location=location or '',
+                    description=description or '',
+                    salary_range=salary_range or '',
+                    url=url,
+                    apply_link=apply_link or '',
+                    source=source or 'Unknown',
+                    posted_at=posted_at,
+                    is_active=bool(is_active),
+                )
+                created += 1
+            return render(request, 'jobs/job_import_result.html', {'created': created})
+    else:
+        form = JobImportForm()
+    return render(request, 'jobs/job_import.html', {'form': form})
+
+# Vista para descargar formato de ejemplo
+@login_required
+def job_import_format(request):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    headers = [
+        'title', 'company', 'location', 'description', 'salary_range', 'url', 'apply_link', 'source', 'posted_at', 'is_active'
+    ]
+    ws.append(headers)
+    example = [
+        'Inspector API 510', 'Empresa S.A.', 'Ciudad', 'Inspección de tanques según API 510. Experiencia requerida.',
+        'USD 2000-3000/mes', 'https://ejemplo.com/oferta', 'https://ejemplo.com/apply', 'LinkedIn', '2026-03-08', 1
+    ]
+    ws.append(example)
+
+    # Mejorar formato visual
+    from openpyxl.styles import Font, PatternFill, Alignment
+    header_font = Font(bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='2563eb', end_color='2563eb', fill_type='solid')
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+    for col in ws.columns:
+        max_length = 18
+        col_letter = col[0].column_letter
+        ws.column_dimensions[col_letter].width = max_length
+    ws.row_dimensions[1].height = 28
+    ws.row_dimensions[2].height = 22
+    for cell in ws[2]:
+        cell.alignment = Alignment(wrap_text=True, vertical='top')
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="formato_empleos.xlsx"'
+    return response
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import JobOffer
+from .forms import JobOfferForm
+from django.contrib.auth.decorators import login_required
+from core.models import User
+def user_can_edit_job(user, job):
+    return user.is_authenticated and (user.is_superuser or user.is_staff or user.is_editor()) and job.author == user
+
+# Solo editores y admins pueden crear
+@login_required
+def job_create(request):
+    if not (request.user.is_superuser or request.user.is_staff or request.user.is_editor()):
+        return redirect('job_list')
+    if request.method == 'POST':
+        form = JobOfferForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.author = request.user
+            job.save()
+            return redirect('job_detail', pk=job.pk)
+    else:
+        form = JobOfferForm()
+    return render(request, 'jobs/job_form.html', {'form': form})
+
+# Solo el autor (editor) o admin puede editar
+@login_required
+def job_edit(request, pk):
+    job = get_object_or_404(JobOffer, pk=pk)
+    if not user_can_edit_job(request.user, job):
+        return redirect('job_detail', pk=pk)
+    if request.method == 'POST':
+        form = JobOfferForm(request.POST, instance=job)
+        if form.is_valid():
+            form.save()
+            return redirect('job_detail', pk=job.pk)
+    else:
+        form = JobOfferForm(instance=job)
+    return render(request, 'jobs/job_form.html', {'form': form, 'job': job})
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
