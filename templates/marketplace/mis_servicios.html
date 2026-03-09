@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Mis servicios freelance</h1>
+<a href="{% url 'marketplace:servicios_create' %}" class="btn btn-primary">Publicar nuevo servicio</a>
+<ul>
+  {% for servicio in servicios %}
+    <li>
+      <a href="{% url 'marketplace:servicios_detail' servicio.pk %}">{{ servicio.titulo }}</a>
+      — ${{ servicio.precio }}
+      <a href="{% url 'marketplace:servicios_edit' servicio.pk %}" class="btn btn-sm btn-warning">Editar</a>
+    </li>
+  {% empty %}
+    <li>No has publicado servicios aún.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

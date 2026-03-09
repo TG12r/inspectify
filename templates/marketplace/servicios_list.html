@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto py-8">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+    <h1 class="text-3xl font-bold text-yellow-400">Servicios freelance</h1>
+    <a href="{% url 'marketplace:servicios_create' %}" class="inline-block bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-semibold px-5 py-2 rounded-lg shadow transition">Publicar nuevo servicio</a>
+  </div>
+  <form method="get" class="mb-8 flex gap-2">
+    <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Buscar servicios..." class="flex-1 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-yellow-400" style="max-width:350px;">
+    <button type="submit" class="bg-slate-700 hover:bg-yellow-500 hover:text-slate-900 text-slate-100 font-semibold px-4 py-2 rounded-lg transition">Buscar</button>
+  </form>
+  {% if servicios %}
+    <div class="grid gap-6">
+      {% for servicio in servicios %}
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between shadow hover:shadow-lg transition">
+          <div>
+            <a href="{% url 'marketplace:servicios_detail' servicio.pk %}" class="text-xl font-bold text-yellow-300 hover:underline">{{ servicio.titulo }}</a>
+            <div class="text-slate-400 text-sm mt-1">por {{ servicio.usuario.username }}</div>
+            <div class="text-slate-200 mt-2 line-clamp-2">{{ servicio.descripcion|truncatechars:80 }}</div>
+          </div>
+          <div class="mt-4 sm:mt-0 sm:ml-8 flex flex-col items-end">
+            <span class="text-lg font-bold text-yellow-400">${{ servicio.precio }}</span>
+            <a href="{% url 'marketplace:servicios_detail' servicio.pk %}" class="mt-2 text-sm text-blue-400 hover:underline">Ver detalle</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-slate-300 text-lg mt-8">No hay servicios publicados.</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -154,6 +154,7 @@
             <a href="{% url 'job_list' %}" class="text-slate-300 hover:text-white font-medium transition">Empleos</a>
             <a href="{% url 'repository_index' %}" class="text-slate-300 hover:text-white font-medium transition">Repositorio</a>
             <a href="{% url 'community_list' %}" class="text-slate-300 hover:text-white font-medium transition">Comunidades</a>
+            <a href="{% url 'marketplace:servicios_list' %}" class="text-slate-300 hover:text-yellow-400 font-medium transition">Servicios Freelance</a>
             <a href="{% url 'faq' %}" class="text-slate-300 hover:text-white font-medium transition">FAQ</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'public_profile' user.profile.slug %}" class="flex items-center gap-2 text-slate-200 hover:text-blue-400 font-medium transition">
@@ -180,6 +181,7 @@
             <a href="{% url 'job_list' %}" class="text-2xl text-slate-200 hover:text-blue-400 font-semibold transition" @click="open = false">Empleos</a>
             <a href="{% url 'repository_index' %}" class="text-2xl text-slate-200 hover:text-blue-400 font-semibold transition" @click="open = false">Repositorio</a>
             <a href="{% url 'community_list' %}" class="text-2xl text-slate-200 hover:text-blue-400 font-semibold transition" @click="open = false">Comunidades</a>
+            <a href="{% url 'marketplace:servicios_list' %}" class="text-2xl text-yellow-400 hover:text-yellow-300 font-semibold transition" @click="open = false">Servicios Freelance</a>
             <a href="{% url 'faq' %}" class="text-2xl text-slate-200 hover:text-blue-400 font-semibold transition" @click="open = false">FAQ</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'public_profile' user.profile.slug %}" class="flex items-center gap-2 text-2xl text-slate-200 hover:text-blue-400 font-semibold transition" @click="open = false">

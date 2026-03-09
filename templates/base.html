@@ -125,13 +125,23 @@
             {% endif %}
             {% endif %}
 
+
             <a href="{% url 'marketplace:list' %}"
-                class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {% if 'marketplace' in request.resolver_match.namespace %}bg-yellow-900 text-yellow-300{% else %}text-yellow-300 hover:text-white hover:bg-yellow-900{% endif %} transition-colors">
-                <svg class="mr-3 h-5 w-5 {% if 'marketplace' in request.resolver_match.namespace %}text-yellow-300{% else %}text-yellow-300 group-hover:text-yellow-200{% endif %}"
+                class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {% if 'marketplace' in request.resolver_match.namespace and request.resolver_match.url_name == 'list' %}bg-yellow-900 text-yellow-300{% else %}text-yellow-300 hover:text-white hover:bg-yellow-900{% endif %} transition-colors">
+                <svg class="mr-3 h-5 w-5 {% if 'marketplace' in request.resolver_match.namespace and request.resolver_match.url_name == 'list' %}text-yellow-300{% else %}text-yellow-300 group-hover:text-yellow-200{% endif %}"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M16 3.13V4a4 4 0 01-8 0v-.87M12 11v6m-3-3h6" />
                 </svg>
                 Marketplace
+            </a>
+
+            <a href="{% url 'marketplace:servicios_list' %}"
+                class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {% if request.resolver_match.url_name == 'servicios_list' or request.resolver_match.url_name == 'servicios_detail' or request.resolver_match.url_name == 'servicios_create' or request.resolver_match.url_name == 'servicios_edit' or request.resolver_match.url_name == 'mis_servicios' %}bg-yellow-900 text-yellow-200{% else %}text-yellow-200 hover:text-white hover:bg-yellow-900{% endif %} transition-colors">
+                <svg class="mr-3 h-5 w-5 {% if request.resolver_match.url_name == 'servicios_list' or request.resolver_match.url_name == 'servicios_detail' or request.resolver_match.url_name == 'servicios_create' or request.resolver_match.url_name == 'servicios_edit' or request.resolver_match.url_name == 'mis_servicios' %}text-yellow-200{% else %}text-yellow-200 group-hover:text-yellow-100{% endif %}"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 10c-4.418 0-8-1.79-8-4V6c0-2.21 3.582-4 8-4s8 1.79 8 4v8c0 2.21-3.582 4-8 4z" />
+                </svg>
+                Servicios Freelance
             </a>
 
             <a href="{% url 'community_list' %}"

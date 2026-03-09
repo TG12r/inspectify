@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+<div class="max-w-2xl mx-auto py-8">
+  <h2 class="text-3xl font-bold text-yellow-400 mb-4">{{ servicio.titulo }}</h2>
+  {% if servicio.imagen %}
+    <img src="{{ servicio.imagen.url }}" alt="Imagen del servicio" class="rounded-xl shadow mb-6 max-h-72 object-contain mx-auto">
+  {% endif %}
+  <p><strong>Publicado por:</strong> {{ servicio.usuario.username }}</p>
+  <p><strong>Precio:</strong> {{ servicio.precio }}</p>
+  <p><strong>Descripción:</strong> {{ servicio.descripcion }}</p>
+  <p><strong>Contacto:</strong> {{ servicio.contacto }}</p>
+  <hr class="my-6">
+  <h4 class="text-xl font-semibold text-yellow-300 mb-2">Valoraciones</h4>
+{% if valoraciones %}
+  <ul>
+    {% for v in valoraciones %}
+      <li>
+        <strong>{{ v.usuario.username }}</strong> — {{ v.calificacion }} estrellas<br>
+        <em>{{ v.comentario }}</em>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-slate-400">No hay valoraciones aún.</p>
+{% endif %}
+
+{% if puede_valorar and form_valoracion %}
+  <hr class="my-4">
+  <h5 class="text-lg font-medium mb-2">Deja tu valoración</h5>
+  <form method="post">
+    {% csrf_token %}
+    {{ form_valoracion.as_p }}
+    <button type="submit" class="bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold px-6 py-2 rounded-lg shadow transition">Enviar valoración</button>
+  </form>
+{% endif %}
+
+{% if user.is_authenticated and user == servicio.usuario %}
+  <a href="{% url 'marketplace:servicios_edit' servicio.pk %}" class="bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold px-6 py-2 rounded-lg shadow transition">Editar</a>
+{% endif %}
+  <a href="{% url 'marketplace:servicios_list' %}" class="inline-block mt-6 text-blue-400 hover:underline">Volver a la lista</a>
+</div>
+{% endblock %}
