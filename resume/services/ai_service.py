@@ -1,3 +1,26 @@
+    def extract_resume_data(self, file):
+        """
+        Extrae datos del CV subido (PDF/DOCX). Aquí va la lógica real de extracción con IA o librerías.
+        Por ahora, retorna un mock de ejemplo.
+        """
+        # TODO: Implementar extracción real (pdfplumber, python-docx, IA, etc)
+        # file es un UploadedFile de Django
+        return {
+            'title': 'Ejemplo: Ingeniero de Software',
+            'summary': 'Profesional con experiencia en desarrollo web y aplicaciones.',
+            'phone': '+34 600 123 456',
+            'address': 'Madrid, España',
+            'linkedin_url': 'https://linkedin.com/in/ejemplo',
+            'experiences': [
+                {'job_title': 'Desarrollador', 'company': 'Empresa X', 'location': 'Madrid', 'start_date': '2020-01-01', 'end_date': '2022-01-01', 'is_current': False, 'description': 'Desarrollé aplicaciones web.'}
+            ],
+            'education': [
+                {'institution': 'Universidad Y', 'degree': 'Ingeniería Informática', 'field_of_study': 'Informática', 'start_date': '2015-09-01', 'end_date': '2019-06-30', 'description': 'Graduado con honores.'}
+            ],
+            'skills': [
+                {'name': 'Python', 'level': 'Avanzado'}
+            ]
+        }
 
 import google.genai as genai
 from django.conf import settings

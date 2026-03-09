@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div x-data="resumeCompare()" x-init="init()">
+  <h1 class="text-2xl font-bold mb-4">Comparar y actualizar campos del currículum</h1>
+  <template x-for="field in fields" :key="field.name">
+    <div class="mb-4">
+      <label class="block font-semibold text-slate-800 dark:text-slate-200">{{ field.label }}</label>
+      <div class="flex gap-4 mt-1">
+        <div class="flex-1">
+          <span class="text-xs text-slate-500">Actual</span>
+          <div class="p-2 border rounded bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200" x-text="field.current"></div>
+        </div>
+        <div class="flex-1">
+          <span class="text-xs text-blue-500">Extraído</span>
+          <div class="p-2 border rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200" x-text="field.extracted"></div>
+        </div>
+        <div class="flex flex-col justify-center">
+          <button class="px-2 py-1 rounded bg-slate-600 text-white text-xs mb-1 hover:bg-slate-700" @click="openModal(field)">Elegir</button>
+        </div>
+      </div>
+    </div>
+  </template>
+  <form id="compareForm" method="post" @submit.prevent="submit()">
+    {% csrf_token %}
+    <template x-for="field in fields" :key="field.name">
+      <input type="hidden" :name="field.name" :value="field.chosen === 'extracted' ? field.extracted : field.current">
+    </template>
+    <input type="hidden" name="experiences" :value="JSON.stringify(experiencesChosen)">
+    <input type="hidden" name="education" :value="JSON.stringify(educationChosen)">
+    <input type="hidden" name="skills" :value="JSON.stringify(skillsChosen)">
+    <button type="submit" class="mt-6 px-6 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Guardar selección</button>
+  </form>
+
+  <!-- Modal -->
+  <div x-html="modalHtml"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+function resumeCompare() {
+  return {
+    fields: [
+      {% for key, label in {
+        'title': 'Título',
+        'summary': 'Resumen',
+        'phone': 'Teléfono',
+        'address': 'Dirección',
+        'linkedin_url': 'LinkedIn',
+      }.items %}
+      {
+        name: '{{ key }}',
+        label: '{{ label }}',
+        current: `{{ resume|getattr:key|default:'' }}`,
+        extracted: `{{ extracted_data|get_item:key|default:'' }}`,
+        chosen: null
+      },
+      {% endfor %}
+    ],
+    experiencesCurrent: JSON.parse(document.getElementById('experiences-current').textContent),
+    experiencesExtracted: JSON.parse(document.getElementById('experiences-extracted').textContent),
+    experiencesChosen: [],
+    educationCurrent: JSON.parse(document.getElementById('education-current').textContent),
+    educationExtracted: JSON.parse(document.getElementById('education-extracted').textContent),
+    educationChosen: [],
+    skillsCurrent: JSON.parse(document.getElementById('skills-current').textContent),
+    skillsExtracted: JSON.parse(document.getElementById('skills-extracted').textContent),
+    skillsChosen: [],
+    modalHtml: '',
+    open: false,
+    fieldLabel: '',
+    currentValue: '',
+    extractedValue: '',
+    currentField: null,
+    init() {},
+    openModal(field) {
+      this.currentField = field;
+      this.fieldLabel = field.label;
+      this.currentValue = field.current;
+      this.extractedValue = field.extracted;
+      fetch('{% url "static" %}resume/partials/field_compare_modal.html')
+        .then(r => r.text())
+        .then(html => {
+          this.modalHtml = html;
+          this.open = true;
+          this.$nextTick(() => {
+            window.open = this.open;
+            window.fieldLabel = this.fieldLabel;
+            window.currentValue = this.currentValue;
+            window.extractedValue = this.extractedValue;
+            window.choose = (option) => {
+              field.chosen = option;
+              this.open = false;
+              this.modalHtml = '';
+            };
+          });
+        });
+    },
+    openItemModal: false,
+    currentItem: {},
+    extractedItem: {},
+    typeLabel: '',
+    itemIndex: null,
+    itemType: '',
+    chooseItem(option) {
+      if (this.itemType === 'experience') {
+        this.experiencesChosen[this.itemIndex] = (option === 'current') ? this.experiencesCurrent[this.itemIndex] : this.experiencesExtracted[this.itemIndex];
+      } else if (this.itemType === 'education') {
+        this.educationChosen[this.itemIndex] = (option === 'current') ? this.educationCurrent[this.itemIndex] : this.educationExtracted[this.itemIndex];
+      } else if (this.itemType === 'skill') {
+        this.skillsChosen[this.itemIndex] = (option === 'current') ? this.skillsCurrent[this.itemIndex] : this.skillsExtracted[this.itemIndex];
+      }
+      this.openItemModal = false;
+      this.modalHtml = '';
+    },
+    showItemModal(type, idx) {
+      this.itemType = type;
+      this.itemIndex = idx;
+      if (type === 'experience') {
+        this.currentItem = this.experiencesCurrent[idx] || {};
+        this.extractedItem = this.experiencesExtracted[idx] || {};
+        this.typeLabel = 'Experiencia';
+      } else if (type === 'education') {
+        this.currentItem = this.educationCurrent[idx] || {};
+        this.extractedItem = this.educationExtracted[idx] || {};
+        this.typeLabel = 'Educación';
+      } else if (type === 'skill') {
+        this.currentItem = this.skillsCurrent[idx] || {};
+        this.extractedItem = this.skillsExtracted[idx] || {};
+        this.typeLabel = 'Habilidad';
+      }
+      fetch('/static/resume/partials/item_compare_modal.html')
+        .then(r => r.text())
+        .then(html => {
+          this.modalHtml = html;
+          this.openItemModal = true;
+          this.$nextTick(() => {
+            window.openItemModal = this.openItemModal;
+            window.currentItem = this.currentItem;
+            window.extractedItem = this.extractedItem;
+            window.typeLabel = this.typeLabel;
+            window.chooseItem = this.chooseItem.bind(this);
+          });
+        });
+    },
+    submit() {
+      // Validar que se eligió para cada ítem
+      if (this.experiencesExtracted.length && this.experiencesChosen.length !== this.experiencesExtracted.length) {
+        alert('Debes elegir para cada experiencia.');
+        return;
+      }
+      if (this.educationExtracted.length && this.educationChosen.length !== this.educationExtracted.length) {
+        alert('Debes elegir para cada educación.');
+        return;
+      }
+      if (this.skillsExtracted.length && this.skillsChosen.length !== this.skillsExtracted.length) {
+        alert('Debes elegir para cada habilidad.');
+        return;
+      }
+      document.getElementById('compareForm').submit();
+    }
+    <script type="application/json" id="experiences-current">{{ resume.experiences.all|json_script:'experiences-current' }}</script>
+    <script type="application/json" id="experiences-extracted">{{ extracted_data.experiences|default:'[]'|json_script:'experiences-extracted' }}</script>
+    <script type="application/json" id="education-current">{{ resume.education.all|json_script:'education-current' }}</script>
+    <script type="application/json" id="education-extracted">{{ extracted_data.education|default:'[]'|json_script:'education-extracted' }}</script>
+    <script type="application/json" id="skills-current">{{ resume.skills.all|json_script:'skills-current' }}</script>
+    <script type="application/json" id="skills-extracted">{{ extracted_data.skills|default:'[]'|json_script:'skills-extracted' }}</script>
+    <h2 class="mt-8 text-xl font-bold">Experiencias</h2>
+    <template x-for="(exp, idx) in experiencesExtracted" :key="idx">
+      <div class="flex items-center gap-2 my-2">
+        <span class="flex-1" x-text="exp.job_title + ' en ' + exp.company"></span>
+        <button class="px-2 py-1 rounded bg-slate-600 text-white text-xs hover:bg-slate-700" @click="showItemModal('experience', idx)">Elegir</button>
+        <span x-show="experiencesChosen[idx]">✔️</span>
+      </div>
+    </template>
+
+    <h2 class="mt-8 text-xl font-bold">Educación</h2>
+    <template x-for="(edu, idx) in educationExtracted" :key="idx">
+      <div class="flex items-center gap-2 my-2">
+        <span class="flex-1" x-text="edu.degree + ' en ' + edu.institution"></span>
+        <button class="px-2 py-1 rounded bg-slate-600 text-white text-xs hover:bg-slate-700" @click="showItemModal('education', idx)">Elegir</button>
+        <span x-show="educationChosen[idx]">✔️</span>
+      </div>
+    </template>
+
+    <h2 class="mt-8 text-xl font-bold">Habilidades</h2>
+    <template x-for="(skill, idx) in skillsExtracted" :key="idx">
+      <div class="flex items-center gap-2 my-2">
+        <span class="flex-1" x-text="skill.name + ' (' + skill.level + ')' "></span>
+        <button class="px-2 py-1 rounded bg-slate-600 text-white text-xs hover:bg-slate-700" @click="showItemModal('skill', idx)">Elegir</button>
+        <span x-show="skillsChosen[idx]">✔️</span>
+      </div>
+    </template>
+  }
+}
+</script>
+{% endblock %}

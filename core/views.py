@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import UserRegistrationForm
+import requests
 
 def index(request):
     """
@@ -37,6 +38,10 @@ def index(request):
         'recommended_posts': recommended_posts,
     })
 
+
+import http.client
+import json
+from django.conf import settings
 from .models import UserProfile
 
 def register(request):
@@ -46,7 +51,24 @@ def register(request):
             user = form.save()
             # Create UserProfile
             UserProfile.objects.create(user=user)
-            
+
+            # Enviar a LeadsPro Digital
+            try:
+                url = settings.LEADSPRO_API_URL
+
+                payload = {
+                    "firstName": user.first_name,
+                    "lastName": user.last_name,
+                    "email": user.email
+                }
+
+                response = requests.post(url, json=payload)
+
+                print(response.status_code)
+                print(response.text)
+            except Exception as e:
+                print("LeadsPro API error:", str(e))
+
             login(request, user)
             return redirect('dashboard')
     else:

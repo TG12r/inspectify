@@ -8,48 +8,55 @@ from .forms import ResumeForm, ExperienceForm, EducationForm, SkillForm
 from core.models import UserProfile
 from core.forms import UserProfileForm
 
+
 @login_required
 def resume_edit(request):
     resume, created = Resume.objects.get_or_create(user=request.user)
     profile, created_profile = UserProfile.objects.get_or_create(user=request.user)
-    
+
     # Lazy sync: If profile is empty/new but resume has data, copy resume data to profile
     if created_profile or not profile.title:
         if resume.title: profile.title = resume.title
         if resume.phone: profile.phone = resume.phone
         if resume.address: profile.location = resume.address # address maps to location
         if resume.linkedin_url: profile.linkedin_url = resume.linkedin_url
-        if resume.summary: profile.bio = resume.summary # summary maps to bio (optional, but good for consistency)
+        if resume.summary: profile.bio = resume.summary # summary maps to bio (opcional, pero bueno para consistencia)
         profile.save()
-    
+
     if request.method == 'POST':
-        form = ResumeForm(request.POST, instance=resume)
+        form = ResumeForm(request.POST, request.FILES, instance=resume)
         profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
-        
+
         if form.is_valid() and profile_form.is_valid():
+            # Si el usuario subió un archivo, procesarlo
+            cv_file = form.cleaned_data.get('cv_file')
+            if cv_file:
+                # Procesar el archivo y extraer datos (aquí solo mock, luego IA real)
+                from .services.ai_service import AIService
+                ai_service = AIService()
+                # Aquí deberías implementar la lógica real de extracción, por ahora solo ejemplo:
+                extracted_data = ai_service.extract_resume_data(cv_file)
+                # Guardar los datos extraídos en sesión para mostrar comparación
+                request.session['extracted_resume_data'] = extracted_data
+                return redirect('resume_compare')
+
             form.save()
             profile_form.save()
-            
+
             # Sync back: Update Resume model with Profile data to keep Preview working
             resume.title = profile.title
             resume.phone = profile.phone
             resume.address = profile.location
             resume.linkedin_url = profile.linkedin_url
-            # We don't sync bio -> summary implies summary is specific to resume, but let's keep them separate for now unless user wants them same.
-            # actually, let's sync them for now to avoid confusion
-            # resume.summary = profile.bio 
             resume.save()
-            
-            # Optional: Add a success message
+
             from django.contrib import messages
             messages.success(request, 'Tu currículum y perfil han sido actualizados exitosamente.')
             return redirect('resume_edit')
     else:
         form = ResumeForm(instance=resume)
         profile_form = UserProfileForm(instance=profile)
-    
-    
-    # Calculate Resume Health
+
     from .services.health_service import calculate_resume_health
     resume_health = calculate_resume_health(resume)
 
@@ -63,6 +70,92 @@ def resume_edit(request):
         'resume_health': resume_health,
     }
     return render(request, 'resume/resume_edit.html', context)
+
+
+# Vista para comparar campos actuales vs extraídos
+
+@login_required
+def resume_compare(request):
+    resume = Resume.objects.get(user=request.user)
+    extracted_data = request.session.get('extracted_resume_data')
+    if not extracted_data:
+        from django.contrib import messages
+        messages.error(request, 'No se encontraron datos extraídos. Sube un CV primero.')
+        return redirect('resume_edit')
+
+    if request.method == 'POST':
+        selected = request.POST
+        # Campos simples
+        for field in ['title', 'summary', 'phone', 'address', 'linkedin_url']:
+            value = selected.get(field)
+            if value is not None:
+                setattr(resume, field, value)
+        resume.save()
+
+        # Experiencias
+        import json
+        experiences_json = selected.get('experiences')
+        if experiences_json:
+            resume.experiences.all().delete()
+            try:
+                experiences = json.loads(experiences_json)
+                for exp in experiences:
+                    resume.experiences.create(
+                        job_title=exp.get('job_title', ''),
+                        company=exp.get('company', ''),
+                        location=exp.get('location', ''),
+                        start_date=exp.get('start_date'),
+                        end_date=exp.get('end_date'),
+                        is_current=exp.get('is_current', False),
+                        description=exp.get('description', '')
+                    )
+            except Exception as e:
+                print('Error guardando experiencias:', e)
+
+        # Educación
+        education_json = selected.get('education')
+        if education_json:
+            resume.education.all().delete()
+            try:
+                education_list = json.loads(education_json)
+                for edu in education_list:
+                    resume.education.create(
+                        institution=edu.get('institution', ''),
+                        degree=edu.get('degree', ''),
+                        field_of_study=edu.get('field_of_study', ''),
+                        start_date=edu.get('start_date'),
+                        end_date=edu.get('end_date'),
+                        description=edu.get('description', '')
+                    )
+            except Exception as e:
+                print('Error guardando educación:', e)
+
+        # Habilidades
+        skills_json = selected.get('skills')
+        if skills_json:
+            resume.skills.all().delete()
+            try:
+                skills = json.loads(skills_json)
+                for skill in skills:
+                    resume.skills.create(
+                        name=skill.get('name', ''),
+                        level=skill.get('level', 'Intermediate')
+                    )
+            except Exception as e:
+                print('Error guardando skills:', e)
+
+        # Limpiar datos extraídos de la sesión
+        if 'extracted_resume_data' in request.session:
+            del request.session['extracted_resume_data']
+        from django.contrib import messages
+        messages.success(request, 'Currículum actualizado con los datos seleccionados.')
+        return redirect('resume_edit')
+
+    context = {
+        'resume': resume,
+        'extracted_data': extracted_data,
+    }
+    return render(request, 'resume/resume_compare.html', context)
 
 @login_required
 def resume_preview(request):

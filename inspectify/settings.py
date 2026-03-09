@@ -1,9 +1,9 @@
 # Detectar HTTPS detrás de proxy
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# Seguridad para producción
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Seguridad para producción: solo activar en producción
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 """
 Django settings for inspectify project.
 
@@ -103,11 +103,11 @@ import os
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'),
-        'PORT': os.getenv('DATABASE_PORT'),
+        'NAME': os.getenv('DATABASE_NAME', 'inspectify'),
+        'USER': os.getenv('DATABASE_USER', 'postgres'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'postgres'),
+        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
 
@@ -154,6 +154,10 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 AUTH_USER_MODEL = 'core.User'
+
+
+# LeadsPro Digital API Token
+LEADSPRO_API_URL = os.getenv('LEADSPRO_API_URL', '')
 
 # Auth Settings
 LOGIN_URL = 'login'

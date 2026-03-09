@@ -1,7 +1,14 @@
 from django import forms
 from .models import Resume, Experience, Education, Skill, Certification, Language
 
+
 class ResumeForm(forms.ModelForm):
+    cv_file = forms.FileField(
+        required=False,
+        label="Subir CV (PDF o DOCX)",
+        help_text="Sube tu currículum para extraer datos automáticamente.",
+        widget=forms.ClearableFileInput(attrs={'class': 'w-full px-4 py-2 border border-slate-700 rounded-lg bg-slate-800 text-white'})
+    )
     class Meta:
         model = Resume
         fields = ['portfolio_url']
