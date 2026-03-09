@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto bg-slate-900 rounded-xl shadow-lg border border-slate-800 p-6">
+  <h2 class="text-2xl font-bold text-yellow-300 mb-4 flex items-center gap-2">{{ item.title }}
+    {% if item.vendido %}
+      <span class="px-2 py-1 bg-green-700 text-xs text-white rounded">Vendido</span>
+    {% endif %}
+  </h2>
+  {% if item.image %}
+    <img src="{{ item.image.url }}" alt="{{ item.title }}" class="rounded-lg w-full h-64 object-cover mb-4 bg-slate-800">
+  {% endif %}
+  <p class="text-xl font-bold text-green-400 mb-2">Precio: ${{ item.price }}</p>
+  <p class="mb-2"><span class="font-semibold text-slate-300">Descripción:</span> {{ item.description }}</p>
+  <p class="mb-2"><span class="font-semibold text-slate-300">Contacto:</span> <span class="text-blue-300">{{ item.contact_info }}</span></p>
+  <p class="mb-4"><span class="font-semibold text-slate-300">Publicado por:</span> {{ item.seller }}</p>
+  <div class="flex gap-2 mb-4">
+    {% if user.is_authenticated and user == item.seller %}
+      <a href="{% url 'marketplace:edit' item.pk %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 text-sm">Editar</a>
+      {% if not item.vendido %}
+        <a href="{% url 'marketplace:mark_sold' item.pk %}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 text-sm">Marcar como vendido</a>
+      {% endif %}
+    {% endif %}
+  </div>
+  <a href="{% url 'marketplace:list' %}" class="inline-block px-4 py-2 bg-slate-800 text-slate-200 rounded hover:bg-slate-700 transition">Volver al Marketplace</a>
+</div>
+{% endblock %}

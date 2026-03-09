@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'resume',
     'communities',
     'background_task',
+    'marketplace',
 ]
 
 MIDDLEWARE = [

@@ -27,6 +27,7 @@ urlpatterns = [
     path('jobs/', include('jobs.urls')),
     path('repository/', include('repository.urls')),
     path('communities/', include('communities.urls')),
+    path('marketplace/', include('marketplace.urls')),
 ]
 
 if settings.DEBUG:
