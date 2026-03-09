@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import UserRegistrationForm
 import requests
+from marketplace.models import MarketplaceItem
 
 def index(request):
     """
@@ -122,6 +123,7 @@ def search(request):
     documents_total = 0
     profiles_total = 0
     communities_total = 0
+    marketplace_items = []
     
     if query:
         # Determine limit based on whether we're showing all of one type
@@ -169,6 +171,14 @@ def search(request):
             communities_total = communities_query.count()
             communities = list(communities_query[:limit] if limit else communities_query[:50])
         
+        # Search Marketplace Items
+        if not result_type or result_type == 'marketplace':
+            marketplace_query = MarketplaceItem.objects.filter(
+                Q(title__icontains=query) | 
+                Q(description__icontains=query)
+            ).distinct()
+            marketplace_items = list(marketplace_query[:limit] if limit else marketplace_query[:50])
+        
     return render(request, 'core/search_results.html', {
         'query': query,
         'result_type': result_type,
@@ -180,6 +190,6 @@ def search(request):
         'documents_total': documents_total,
         'profiles_total': profiles_total,
         'communities_total': communities_total,
-        'total_results': len(jobs) + len(documents) + len(profiles) + len(communities)
+        'marketplace_items': marketplace_items,
+        'total_results': len(jobs) + len(documents) + len(profiles) + len(communities) + len(marketplace_items)
     })
-
