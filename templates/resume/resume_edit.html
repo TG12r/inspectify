@@ -77,11 +77,12 @@
 
     <!-- Botón para subir CV y extraer datos -->
     <div class="glass-panel p-6 rounded-xl mb-6 flex flex-col md:flex-row items-center gap-4 justify-between bg-blue-900/20 border border-blue-700">
-        <form method="post" enctype="multipart/form-data" action="{% url 'resume_edit' %}" class="flex flex-col md:flex-row items-center gap-4 w-full">
+        <form id="ai-upload-form" method="post" enctype="multipart/form-data" action="{% url 'resume_edit' %}" class="flex flex-col md:flex-row items-center gap-4 w-full">
             {% csrf_token %}
             <input type="file" name="cv_file" accept=".pdf,.doc,.docx"
                 class="block w-full md:w-auto text-xs text-slate-400 file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" required>
             <button type="submit" 
+                id="ai-submit-btn"
                 class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 {% if remaining_ai_uses == 0 %}disabled{% endif %}>
                 Subir CV y extraer datos 
@@ -347,7 +348,7 @@
     </div>
 
     <!-- Loading Overlay for AI Extraction -->
-    <div id="ai-loading-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] hidden items-center justify-center flex-col gap-4">
+    <div id="ai-loading-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] hidden items-center justify-center flex-col gap-4 mt-0">
         <div class="relative">
             <div class="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
             <div class="absolute inset-0 flex items-center justify-center">
@@ -357,7 +358,7 @@
             </div>
         </div>
         <div class="text-center">
-            <h3 class="text-xl font-bold text-white mb-2">Procesando con IA...</h3>
+            <h3 class="text-xl font-bold text-white mb-2">Procesando...</h3>
             <p class="text-slate-400 text-sm">Estamos analizando tu CV para extraer lo mejor de ti.</p>
             <p class="text-[10px] text-slate-500 mt-4 uppercase tracking-widest">Esto puede demorar unos 10-15 segundos</p>
         </div>
@@ -365,16 +366,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form[action*="resume_edit"]');
+            const uploadForm = document.getElementById('ai-upload-form');
             const overlay = document.getElementById('ai-loading-overlay');
             
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    // Solo si es el formulario de subida (tiene cv_file)
-                    if (this.querySelector('input[name="cv_file"]')) {
-                        overlay.classList.remove('hidden');
-                        overlay.classList.add('flex');
-                    }
+            if (uploadForm) {
+                uploadForm.addEventListener('submit', function(e) {
+                    overlay.classList.remove('hidden');
+                    overlay.classList.add('flex');
                 });
             }
         });
