@@ -16,4 +16,5 @@ urlpatterns = [
     path('skill/<int:pk>/delete/', views.delete_skill, name='delete_skill'),
     
     path('ai/rewrite-description/', views.rewrite_description, name='rewrite_description'),
+    path('compare/', views.resume_compare, name='resume_compare'),
 ]

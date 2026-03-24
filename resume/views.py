@@ -24,22 +24,20 @@ def resume_edit(request):
         profile.save()
 
     if request.method == 'POST':
+        # Prioridad 1: Si se subió un CV para extracción
+        if 'cv_file' in request.FILES:
+            cv_file = request.FILES.get('cv_file')
+            from .services.ai_service import AIService
+            ai_service = AIService()
+            extracted_data = ai_service.extract_resume_data(cv_file)
+            request.session['extracted_resume_data'] = extracted_data
+            return redirect('resume_compare')
+
+        # Prioridad 2: Guardado normal del perfil y campos del resume
         form = ResumeForm(request.POST, request.FILES, instance=resume)
         profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
 
         if form.is_valid() and profile_form.is_valid():
-            # Si el usuario subió un archivo, procesarlo
-            cv_file = form.cleaned_data.get('cv_file')
-            if cv_file:
-                # Procesar el archivo y extraer datos (aquí solo mock, luego IA real)
-                from .services.ai_service import AIService
-                ai_service = AIService()
-                # Aquí deberías implementar la lógica real de extracción, por ahora solo ejemplo:
-                extracted_data = ai_service.extract_resume_data(cv_file)
-                # Guardar los datos extraídos en sesión para mostrar comparación
-                request.session['extracted_resume_data'] = extracted_data
-                return redirect('resume_compare')
-
             form.save()
             profile_form.save()
 
@@ -83,6 +81,36 @@ def resume_compare(request):
         messages.error(request, 'No se encontraron datos extraídos. Sube un CV primero.')
         return redirect('resume_edit')
 
+    # Configuración de campos para la comparación
+    fields_to_compare = [
+        {'key': 'title', 'label': 'Título Profesional'},
+        {'key': 'summary', 'label': 'Resumen / Bio'},
+        {'key': 'phone', 'label': 'Teléfono'},
+        {'key': 'address', 'label': 'Ubicación'},
+        {'key': 'linkedin_url', 'label': 'LinkedIn'},
+    ]
+    
+    fields_config = []
+    for field in fields_to_compare:
+        fields_config.append({
+            'key': field['key'],
+            'label': field['label'],
+            'current': getattr(resume, field['key'], ''),
+            'extracted': extracted_data.get(field['key'], '')
+        })
+
+    # Preparar experiencias para comparación
+    experiences_current = list(resume.experiences.all().values())
+    experiences_extracted = extracted_data.get('experiences', [])
+    
+    # Preparar educación para comparación
+    education_current = list(resume.education.all().values())
+    education_extracted = extracted_data.get('education', [])
+
+    # Preparar habilidades
+    skills_current = list(resume.skills.all().values())
+    skills_extracted = extracted_data.get('skills', [])
+
     if request.method == 'POST':
         selected = request.POST
         # Campos simples
@@ -93,56 +121,48 @@ def resume_compare(request):
         resume.save()
 
         # Experiencias
-        import json
-        experiences_json = selected.get('experiences')
-        if experiences_json:
+        experience_mode = selected.get('experience_mode')
+        if experience_mode == 'replace':
             resume.experiences.all().delete()
-            try:
-                experiences = json.loads(experiences_json)
-                for exp in experiences:
-                    resume.experiences.create(
-                        job_title=exp.get('job_title', ''),
-                        company=exp.get('company', ''),
-                        location=exp.get('location', ''),
-                        start_date=exp.get('start_date'),
-                        end_date=exp.get('end_date'),
-                        is_current=exp.get('is_current', False),
-                        description=exp.get('description', '')
-                    )
-            except Exception as e:
-                print('Error guardando experiencias:', e)
+            for exp in extracted_data.get('experiences', []):
+                # Validar fechas básicas o usar null
+                s_date = exp.get('start_date') if exp.get('start_date') else None
+                e_date = exp.get('end_date') if exp.get('end_date') else None
+                resume.experiences.create(
+                    job_title=exp.get('job_title') or 'Sin Título',
+                    company=exp.get('company') or 'Empresa desconocida',
+                    location=exp.get('location') or '',
+                    start_date=s_date or '2020-01-01',
+                    end_date=e_date,
+                    is_current=exp.get('is_current') or False,
+                    description=exp.get('description') or ''
+                )
 
         # Educación
-        education_json = selected.get('education')
-        if education_json:
+        education_mode = selected.get('education_mode')
+        if education_mode == 'replace':
             resume.education.all().delete()
-            try:
-                education_list = json.loads(education_json)
-                for edu in education_list:
-                    resume.education.create(
-                        institution=edu.get('institution', ''),
-                        degree=edu.get('degree', ''),
-                        field_of_study=edu.get('field_of_study', ''),
-                        start_date=edu.get('start_date'),
-                        end_date=edu.get('end_date'),
-                        description=edu.get('description', '')
-                    )
-            except Exception as e:
-                print('Error guardando educación:', e)
+            for edu in extracted_data.get('education', []):
+                s_date = edu.get('start_date') if edu.get('start_date') else None
+                e_date = edu.get('end_date') if edu.get('end_date') else None
+                resume.education.create(
+                    institution=edu.get('institution') or 'Institución desconocida',
+                    degree=edu.get('degree') or 'Título desconocido',
+                    field_of_study=edu.get('field_of_study') or '',
+                    start_date=s_date or '2015-01-01',
+                    end_date=e_date,
+                    description=edu.get('description') or ''
+                )
 
-        # Habilidades
-        skills_json = selected.get('skills')
-        if skills_json:
+        # Habilidades (Siempre añadir las nuevas si no existen o reemplazar según lógica)
+        # Por ahora, simplemente las reemplazamos todas si hay datos extraídos
+        if extracted_data.get('skills'):
             resume.skills.all().delete()
-            try:
-                skills = json.loads(skills_json)
-                for skill in skills:
-                    resume.skills.create(
-                        name=skill.get('name', ''),
-                        level=skill.get('level', 'Intermediate')
-                    )
-            except Exception as e:
-                print('Error guardando skills:', e)
+            for skill in extracted_data.get('skills', []):
+                resume.skills.create(
+                    name=skill.get('name', ''),
+                    level=skill.get('level', 'Intermediate')
+                )
 
         # Limpiar datos extraídos de la sesión
         if 'extracted_resume_data' in request.session:
@@ -154,6 +174,13 @@ def resume_compare(request):
     context = {
         'resume': resume,
         'extracted_data': extracted_data,
+        'fields_config': fields_config,
+        'experiences_current': experiences_current,
+        'experiences_extracted': experiences_extracted,
+        'education_current': education_current,
+        'education_extracted': education_extracted,
+        'skills_current': skills_current,
+        'skills_extracted': skills_extracted,
     }
     return render(request, 'resume/resume_compare.html', context)
 

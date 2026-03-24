@@ -2,197 +2,167 @@
 {% load static %}
 
 {% block content %}
-<div x-data="resumeCompare()" x-init="init()">
-  <h1 class="text-2xl font-bold mb-4">Comparar y actualizar campos del currículum</h1>
-  <template x-for="field in fields" :key="field.name">
-    <div class="mb-4">
-      <label class="block font-semibold text-slate-800 dark:text-slate-200">{{ field.label }}</label>
-      <div class="flex gap-4 mt-1">
-        <div class="flex-1">
-          <span class="text-xs text-slate-500">Actual</span>
-          <div class="p-2 border rounded bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200" x-text="field.current"></div>
+<div x-data="resumeCompare()" class="max-w-5xl mx-auto space-y-8 pb-20">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Comparar Datos Extraídos</h1>
+            <p class="text-slate-400">Revisa la información extraída por la IA y elige qué conservar.</p>
         </div>
-        <div class="flex-1">
-          <span class="text-xs text-blue-500">Extraído</span>
-          <div class="p-2 border rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200" x-text="field.extracted"></div>
-        </div>
-        <div class="flex flex-col justify-center">
-          <button class="px-2 py-1 rounded bg-slate-600 text-white text-xs mb-1 hover:bg-slate-700" @click="openModal(field)">Elegir</button>
-        </div>
-      </div>
+        <a href="{% url 'resume_edit' %}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-700">
+            Cancelar y Volver
+        </a>
     </div>
-  </template>
-  <form id="compareForm" method="post" @submit.prevent="submit()">
-    {% csrf_token %}
-    <template x-for="field in fields" :key="field.name">
-      <input type="hidden" :name="field.name" :value="field.chosen === 'extracted' ? field.extracted : field.current">
-    </template>
-    <input type="hidden" name="experiences" :value="JSON.stringify(experiencesChosen)">
-    <input type="hidden" name="education" :value="JSON.stringify(educationChosen)">
-    <input type="hidden" name="skills" :value="JSON.stringify(skillsChosen)">
-    <button type="submit" class="mt-6 px-6 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Guardar selección</button>
-  </form>
 
-  <!-- Modal -->
-  <div x-html="modalHtml"></div>
+    <!-- Sección 1: Información Principal -->
+    <div class="glass-panel p-6 rounded-xl space-y-6">
+        <h2 class="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm">1</span>
+            Información de Perfil
+        </h2>
+        
+        <div class="grid grid-cols-1 gap-6">
+            {% for field in fields_config %}
+            <div class="group relative p-4 rounded-xl bg-slate-800/20 border border-slate-700 hover:border-blue-500/50 transition-all">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="font-bold text-slate-300">{{ field.label }}</span>
+                    <div class="flex bg-slate-900 rounded-lg p-1 border border-slate-700">
+                        <button @click="selections['{{ field.key }}'] = 'current'" 
+                                :class="selections['{{ field.key }}'] === 'current' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+                                class="px-3 py-1 rounded-md text-xs font-medium transition-all">Actual</button>
+                        <button @click="selections['{{ field.key }}'] = 'extracted'"
+                                :class="selections['{{ field.key }}'] === 'extracted' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'"
+                                class="px-3 py-1 rounded-md text-xs font-medium transition-all">Extraído</button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-800" :class="selections['{{ field.key }}'] === 'current' ? 'ring-1 ring-blue-500/50 bg-blue-500/5' : ''">
+                        <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Actual</p>
+                        <p class="text-sm text-slate-300">{{ field.current|default:"(Vacío)" }}</p>
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-800" :class="selections['{{ field.key }}'] === 'extracted' ? 'ring-1 ring-blue-500/50 bg-blue-500/5' : ''">
+                        <p class="text-[10px] text-blue-500 uppercase font-bold mb-1">Extraído</p>
+                        <p class="text-sm text-blue-100">{{ field.extracted|default:"(No detectado)" }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sección 2: Experiencia Laboral -->
+    <div class="glass-panel p-6 rounded-xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm">2</span>
+                Experiencia Laboral
+            </h2>
+            <div class="flex gap-2">
+                <button @click="expMode = 'keep'" :class="expMode === 'keep' ? 'bg-blue-600' : 'bg-slate-700'" class="px-3 py-1 rounded text-xs text-white">Mantener Actual</button>
+                <button @click="expMode = 'replace'" :class="expMode === 'replace' ? 'bg-blue-600' : 'bg-slate-700'" class="px-3 py-1 rounded text-xs text-white">Reemplazar con Extraída</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Actual -->
+            <div class="space-y-4" :class="expMode === 'keep' ? 'opacity-100' : 'opacity-40'">
+                <h3 class="text-sm font-bold text-slate-500 uppercase">Actual en el sistema</h3>
+                {% for exp in experiences_current %}
+                <div class="p-4 rounded-lg bg-slate-800/40 border border-slate-700">
+                    <p class="font-bold text-white">{{ exp.job_title }}</p>
+                    <p class="text-sm text-slate-400">{{ exp.company }}</p>
+                    <p class="text-xs text-slate-500">{{ exp.start_date }} - {% if exp.is_current %}Presente{% else %}{{ exp.end_date }}{% endif %}</p>
+                </div>
+                {% empty %}
+                <p class="text-sm text-slate-600 italic">No hay experiencias registradas.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Extraída -->
+            <div class="space-y-4" :class="expMode === 'replace' ? 'opacity-100' : 'opacity-40'">
+                <h3 class="text-sm font-bold text-blue-500 uppercase">Detectado por IA</h3>
+                {% for exp in experiences_extracted %}
+                <div class="p-4 rounded-lg bg-blue-900/10 border border-blue-500/30">
+                    <p class="font-bold text-blue-100">{{ exp.job_title }}</p>
+                    <p class="text-sm text-blue-300">{{ exp.company }}</p>
+                    <p class="text-xs text-blue-400/60">{{ exp.start_date }} - {% if exp.is_current %}Presente{% else %}{{ exp.end_date }}{% endif %}</p>
+                </div>
+                {% empty %}
+                <p class="text-sm text-slate-600 italic">No se detectaron experiencias.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección 3: Educación -->
+    <div class="glass-panel p-6 rounded-xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm">3</span>
+                Educación
+            </h2>
+            <div class="flex gap-2">
+                <button @click="eduMode = 'keep'" :class="eduMode === 'keep' ? 'bg-blue-600' : 'bg-slate-700'" class="px-3 py-1 rounded text-xs text-white">Mantener Actual</button>
+                <button @click="eduMode = 'replace'" :class="eduMode === 'replace' ? 'bg-blue-600' : 'bg-slate-700'" class="px-3 py-1 rounded text-xs text-white">Reemplazar con Extraída</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-4" :class="eduMode === 'keep' ? 'opacity-100' : 'opacity-40'">
+                <h3 class="text-sm font-bold text-slate-500 uppercase">Actual</h3>
+                {% for edu in education_current %}
+                <div class="p-4 rounded-lg bg-slate-800/40 border border-slate-700">
+                    <p class="font-bold text-white">{{ edu.degree }}</p>
+                    <p class="text-sm text-slate-400">{{ edu.institution }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="space-y-4" :class="eduMode === 'replace' ? 'opacity-100' : 'opacity-40'">
+                <h3 class="text-sm font-bold text-blue-500 uppercase">Extraída</h3>
+                {% for edu in education_extracted %}
+                <div class="p-4 rounded-lg bg-blue-900/10 border border-blue-500/30">
+                    <p class="font-bold text-blue-100">{{ edu.degree }}</p>
+                    <p class="text-sm text-blue-300">{{ edu.institution }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Finales -->
+    <form method="post" id="finalForm" class="fixed bottom-0 left-0 right-0 p-4 bg-slate-900/80 backdrop-blur-md border-t border-slate-700 z-50">
+        {% csrf_token %}
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <p class="text-sm text-slate-400">Revisa bien antes de guardar. Esta acción actualizará tu perfil.</p>
+            
+            <!-- Hidden Fields for Profile -->
+            {% for field in fields_config %}
+            <input type="hidden" name="{{ field.key }}" :value="selections['{{ field.key }}'] === 'extracted' ? '{{ field.extracted|escapejs }}' : '{{ field.current|escapejs }}'">
+            {% endfor %}
+            
+            <!-- Hidden state for list modes -->
+            <input type="hidden" name="experience_mode" :value="expMode">
+            <input type="hidden" name="education_mode" :value="eduMode">
+
+            <button type="submit" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xl transition-all transform hover:scale-105 active:scale-95">
+                Guardar y Actualizar Perfil
+            </button>
+        </div>
+    </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script>
-function resumeCompare() {
-  return {
-    fields: [
-      {% for key, label in {
-        'title': 'Título',
-        'summary': 'Resumen',
-        'phone': 'Teléfono',
-        'address': 'Dirección',
-        'linkedin_url': 'LinkedIn',
-      }.items %}
-      {
-        name: '{{ key }}',
-        label: '{{ label }}',
-        current: `{{ resume|getattr:key|default:'' }}`,
-        extracted: `{{ extracted_data|get_item:key|default:'' }}`,
-        chosen: null
-      },
-      {% endfor %}
-    ],
-    experiencesCurrent: JSON.parse(document.getElementById('experiences-current').textContent),
-    experiencesExtracted: JSON.parse(document.getElementById('experiences-extracted').textContent),
-    experiencesChosen: [],
-    educationCurrent: JSON.parse(document.getElementById('education-current').textContent),
-    educationExtracted: JSON.parse(document.getElementById('education-extracted').textContent),
-    educationChosen: [],
-    skillsCurrent: JSON.parse(document.getElementById('skills-current').textContent),
-    skillsExtracted: JSON.parse(document.getElementById('skills-extracted').textContent),
-    skillsChosen: [],
-    modalHtml: '',
-    open: false,
-    fieldLabel: '',
-    currentValue: '',
-    extractedValue: '',
-    currentField: null,
-    init() {},
-    openModal(field) {
-      this.currentField = field;
-      this.fieldLabel = field.label;
-      this.currentValue = field.current;
-      this.extractedValue = field.extracted;
-      fetch('{% url "static" %}resume/partials/field_compare_modal.html')
-        .then(r => r.text())
-        .then(html => {
-          this.modalHtml = html;
-          this.open = true;
-          this.$nextTick(() => {
-            window.open = this.open;
-            window.fieldLabel = this.fieldLabel;
-            window.currentValue = this.currentValue;
-            window.extractedValue = this.extractedValue;
-            window.choose = (option) => {
-              field.chosen = option;
-              this.open = false;
-              this.modalHtml = '';
-            };
-          });
-        });
-    },
-    openItemModal: false,
-    currentItem: {},
-    extractedItem: {},
-    typeLabel: '',
-    itemIndex: null,
-    itemType: '',
-    chooseItem(option) {
-      if (this.itemType === 'experience') {
-        this.experiencesChosen[this.itemIndex] = (option === 'current') ? this.experiencesCurrent[this.itemIndex] : this.experiencesExtracted[this.itemIndex];
-      } else if (this.itemType === 'education') {
-        this.educationChosen[this.itemIndex] = (option === 'current') ? this.educationCurrent[this.itemIndex] : this.educationExtracted[this.itemIndex];
-      } else if (this.itemType === 'skill') {
-        this.skillsChosen[this.itemIndex] = (option === 'current') ? this.skillsCurrent[this.itemIndex] : this.skillsExtracted[this.itemIndex];
-      }
-      this.openItemModal = false;
-      this.modalHtml = '';
-    },
-    showItemModal(type, idx) {
-      this.itemType = type;
-      this.itemIndex = idx;
-      if (type === 'experience') {
-        this.currentItem = this.experiencesCurrent[idx] || {};
-        this.extractedItem = this.experiencesExtracted[idx] || {};
-        this.typeLabel = 'Experiencia';
-      } else if (type === 'education') {
-        this.currentItem = this.educationCurrent[idx] || {};
-        this.extractedItem = this.educationExtracted[idx] || {};
-        this.typeLabel = 'Educación';
-      } else if (type === 'skill') {
-        this.currentItem = this.skillsCurrent[idx] || {};
-        this.extractedItem = this.skillsExtracted[idx] || {};
-        this.typeLabel = 'Habilidad';
-      }
-      fetch('/static/resume/partials/item_compare_modal.html')
-        .then(r => r.text())
-        .then(html => {
-          this.modalHtml = html;
-          this.openItemModal = true;
-          this.$nextTick(() => {
-            window.openItemModal = this.openItemModal;
-            window.currentItem = this.currentItem;
-            window.extractedItem = this.extractedItem;
-            window.typeLabel = this.typeLabel;
-            window.chooseItem = this.chooseItem.bind(this);
-          });
-        });
-    },
-    submit() {
-      // Validar que se eligió para cada ítem
-      if (this.experiencesExtracted.length && this.experiencesChosen.length !== this.experiencesExtracted.length) {
-        alert('Debes elegir para cada experiencia.');
-        return;
-      }
-      if (this.educationExtracted.length && this.educationChosen.length !== this.educationExtracted.length) {
-        alert('Debes elegir para cada educación.');
-        return;
-      }
-      if (this.skillsExtracted.length && this.skillsChosen.length !== this.skillsExtracted.length) {
-        alert('Debes elegir para cada habilidad.');
-        return;
-      }
-      document.getElementById('compareForm').submit();
+    function resumeCompare() {
+        return {
+            selections: {
+                {% for field in fields_config %}
+                '{{ field.key }}': '{{ field.extracted|yesno:"extracted,current" }}',
+                {% endfor %}
+            },
+            expMode: 'replace',
+            eduMode: 'replace',
+        }
     }
-    <script type="application/json" id="experiences-current">{{ resume.experiences.all|json_script:'experiences-current' }}</script>
-    <script type="application/json" id="experiences-extracted">{{ extracted_data.experiences|default:'[]'|json_script:'experiences-extracted' }}</script>
-    <script type="application/json" id="education-current">{{ resume.education.all|json_script:'education-current' }}</script>
-    <script type="application/json" id="education-extracted">{{ extracted_data.education|default:'[]'|json_script:'education-extracted' }}</script>
-    <script type="application/json" id="skills-current">{{ resume.skills.all|json_script:'skills-current' }}</script>
-    <script type="application/json" id="skills-extracted">{{ extracted_data.skills|default:'[]'|json_script:'skills-extracted' }}</script>
-    <h2 class="mt-8 text-xl font-bold">Experiencias</h2>
-    <template x-for="(exp, idx) in experiencesExtracted" :key="idx">
-      <div class="flex items-center gap-2 my-2">
-        <span class="flex-1" x-text="exp.job_title + ' en ' + exp.company"></span>
-        <button class="px-2 py-1 rounded bg-slate-600 text-white text-xs hover:bg-slate-700" @click="showItemModal('experience', idx)">Elegir</button>
-        <span x-show="experiencesChosen[idx]">✔️</span>
-      </div>
-    </template>
-
-    <h2 class="mt-8 text-xl font-bold">Educación</h2>
-    <template x-for="(edu, idx) in educationExtracted" :key="idx">
-      <div class="flex items-center gap-2 my-2">
-        <span class="flex-1" x-text="edu.degree + ' en ' + edu.institution"></span>
-        <button class="px-2 py-1 rounded bg-slate-600 text-white text-xs hover:bg-slate-700" @click="showItemModal('education', idx)">Elegir</button>
-        <span x-show="educationChosen[idx]">✔️</span>
-      </div>
-    </template>
-
-    <h2 class="mt-8 text-xl font-bold">Habilidades</h2>
-    <template x-for="(skill, idx) in skillsExtracted" :key="idx">
-      <div class="flex items-center gap-2 my-2">
-        <span class="flex-1" x-text="skill.name + ' (' + skill.level + ')' "></span>
-        <button class="px-2 py-1 rounded bg-slate-600 text-white text-xs hover:bg-slate-700" @click="showItemModal('skill', idx)">Elegir</button>
-        <span x-show="skillsChosen[idx]">✔️</span>
-      </div>
-    </template>
-  }
-}
 </script>
 {% endblock %}
