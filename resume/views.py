@@ -2,9 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.views.decorators.http import require_http_methods
+from django.contrib import messages
+from django.core.cache import cache
+import json
+from datetime import date
+
 from .models import Resume, Experience, Education, Skill
 from .forms import ResumeForm, ExperienceForm, EducationForm, SkillForm
-
+from .services.ai_service import AIService
+from .services.health_service import calculate_resume_health
 from core.models import UserProfile
 from core.forms import UserProfileForm
 
@@ -24,14 +30,30 @@ def resume_edit(request):
         profile.save()
 
     if request.method == 'POST':
-        # Prioridad 1: Si se subió un CV para extracción
-        if 'cv_file' in request.FILES:
-            cv_file = request.FILES.get('cv_file')
-            from .services.ai_service import AIService
+        # 1. ¿Viene un archivo para extraer con IA?
+        cv_file = request.FILES.get('cv_file')
+        if cv_file:
+            # --- PROTECCIÓN DE COSTOS / LÍMITE DE USO ---
+            cache_key = f"ai_extract_limit_{request.user.id}"
+            usage_count = cache.get(cache_key, 0)
+            
+            if usage_count >= 3: # Límite de 3 extracciones al día por usuario
+                messages.error(request, "Has alcanzado el límite diario de extracciones con IA (3). Inténtalo de nuevo mañana.")
+                return redirect('resume_edit')
+            
+            # --------------------------------------------
             ai_service = AIService()
             extracted_data = ai_service.extract_resume_data(cv_file)
-            request.session['extracted_resume_data'] = extracted_data
-            return redirect('resume_compare')
+            
+            if extracted_data:
+                # Incrementar contador de uso (clack por 24 horas)
+                cache.set(cache_key, usage_count + 1, 86400)
+                
+                request.session['extracted_resume_data'] = extracted_data
+                return redirect('resume_compare')
+            else:
+                messages.error(request, "No se pudo extraer información del archivo. Asegúrate de que sea un PDF o DOCX legible.")
+                return redirect('resume_edit')
 
         # Prioridad 2: Guardado normal del perfil y campos del resume
         form = ResumeForm(request.POST, request.FILES, instance=resume)
@@ -48,15 +70,20 @@ def resume_edit(request):
             resume.linkedin_url = profile.linkedin_url
             resume.save()
 
-            from django.contrib import messages
             messages.success(request, 'Tu currículum y perfil han sido actualizados exitosamente.')
             return redirect('resume_edit')
     else:
         form = ResumeForm(instance=resume)
         profile_form = UserProfileForm(instance=profile)
 
-    from .services.health_service import calculate_resume_health
-    resume_health = calculate_resume_health(resume)
+    # --- INFORMACIÓN DE LÍMITES IA ---
+    cache_key = f"ai_extract_limit_{request.user.id}"
+    usage_count = cache.get(cache_key, 0)
+    remaining_ai_uses = max(0, 3 - usage_count)
+    # ---------------------------------
+
+    # Get additional context if needed
+    resume_health = calculate_resume_health(resume) # Reverted to original calculation, as the instruction's snippet seemed to remove it unintentionally.
 
     context = {
         'form': form,
@@ -66,6 +93,7 @@ def resume_edit(request):
         'educations': resume.education.all(),
         'skills': resume.skills.all(),
         'resume_health': resume_health,
+        'remaining_ai_uses': remaining_ai_uses,
     }
     return render(request, 'resume/resume_edit.html', context)
 
@@ -77,7 +105,6 @@ def resume_compare(request):
     resume = Resume.objects.get(user=request.user)
     extracted_data = request.session.get('extracted_resume_data')
     if not extracted_data:
-        from django.contrib import messages
         messages.error(request, 'No se encontraron datos extraídos. Sube un CV primero.')
         return redirect('resume_edit')
 
@@ -129,9 +156,9 @@ def resume_compare(request):
                 s_date = exp.get('start_date') if exp.get('start_date') else None
                 e_date = exp.get('end_date') if exp.get('end_date') else None
                 resume.experiences.create(
-                    job_title=exp.get('job_title') or 'Sin Título',
-                    company=exp.get('company') or 'Empresa desconocida',
-                    location=exp.get('location') or '',
+                    job_title=(exp.get('job_title') or 'Sin Título')[:255],
+                    company=(exp.get('company') or 'Empresa desconocida')[:255],
+                    location=(exp.get('location') or '')[:255],
                     start_date=s_date or '2020-01-01',
                     end_date=e_date,
                     is_current=exp.get('is_current') or False,
@@ -146,9 +173,9 @@ def resume_compare(request):
                 s_date = edu.get('start_date') if edu.get('start_date') else None
                 e_date = edu.get('end_date') if edu.get('end_date') else None
                 resume.education.create(
-                    institution=edu.get('institution') or 'Institución desconocida',
-                    degree=edu.get('degree') or 'Título desconocido',
-                    field_of_study=edu.get('field_of_study') or '',
+                    institution=(edu.get('institution') or 'Institución desconocida')[:255],
+                    degree=(edu.get('degree') or 'Título desconocido')[:255],
+                    field_of_study=(edu.get('field_of_study') or '')[:255],
                     start_date=s_date or '2015-01-01',
                     end_date=e_date,
                     description=edu.get('description') or ''
@@ -160,14 +187,14 @@ def resume_compare(request):
             resume.skills.all().delete()
             for skill in extracted_data.get('skills', []):
                 resume.skills.create(
-                    name=skill.get('name', ''),
+                    name=(skill.get('name', ''))[:255],
                     level=skill.get('level', 'Intermediate')
                 )
 
         # Limpiar datos extraídos de la sesión
         if 'extracted_resume_data' in request.session:
             del request.session['extracted_resume_data']
-        from django.contrib import messages
+            
         messages.success(request, 'Currículum actualizado con los datos seleccionados.')
         return redirect('resume_edit')
 
@@ -305,9 +332,6 @@ def delete_skill(request, pk):
 def rewrite_description(request):
     try:
         # Rate Limiting
-        from django.core.cache import cache
-        from datetime import date
-        
         user_id = request.user.id
         today = date.today().isoformat()
         cache_key = f"ai_limit_{user_id}_{today}"
@@ -336,7 +360,6 @@ def rewrite_description(request):
         
         job_title = data.get('job_title', 'Professional')
         
-        from .services.ai_service import AIService
         ai_service = AIService()
         
         if improvement_type == 'experience':

@@ -3,9 +3,9 @@ from django.conf import settings
 
 class Resume(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='resume')
-    title = models.CharField(max_length=100, blank=True, help_text="Ej: Full Stack Developer")
+    title = models.CharField(max_length=255, blank=True, help_text="Ej: Full Stack Developer")
     summary = models.TextField(blank=True, help_text="Breve resumen profesional")
-    phone = models.CharField(max_length=20, blank=True)
+    phone = models.CharField(max_length=50, blank=True)
     address = models.CharField(max_length=255, blank=True)
     linkedin_url = models.URLField(blank=True)
     portfolio_url = models.URLField(blank=True)
@@ -17,9 +17,9 @@ class Resume(models.Model):
 
 class Experience(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name='experiences')
-    job_title = models.CharField(max_length=100)
-    company = models.CharField(max_length=100)
-    location = models.CharField(max_length=100, blank=True)
+    job_title = models.CharField(max_length=255)
+    company = models.CharField(max_length=255)
+    location = models.CharField(max_length=255, blank=True)
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     is_current = models.BooleanField(default=False)
@@ -33,9 +33,9 @@ class Experience(models.Model):
 
 class Education(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name='education')
-    institution = models.CharField(max_length=100)
-    degree = models.CharField(max_length=100)
-    field_of_study = models.CharField(max_length=100, blank=True)
+    institution = models.CharField(max_length=255)
+    degree = models.CharField(max_length=255)
+    field_of_study = models.CharField(max_length=255, blank=True)
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     description = models.TextField(blank=True)
@@ -48,7 +48,7 @@ class Education(models.Model):
 
 class Skill(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name='skills')
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=255)
     level = models.CharField(max_length=20, choices=[
         ('Beginner', 'Principiante'),
         ('Intermediate', 'Intermedio'),
@@ -61,8 +61,8 @@ class Skill(models.Model):
 
 class Certification(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name='certifications')
-    name = models.CharField(max_length=100)
-    issuing_organization = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
+    issuing_organization = models.CharField(max_length=255)
     issue_date = models.DateField()
     expiration_date = models.DateField(null=True, blank=True)
     credential_id = models.CharField(max_length=100, blank=True)
@@ -73,7 +73,7 @@ class Certification(models.Model):
 
 class Language(models.Model):
     resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name='languages')
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=255)
     proficiency = models.CharField(max_length=20, choices=[
         ('Native', 'Nativo'),
         ('Fluent', 'Fluido'),
